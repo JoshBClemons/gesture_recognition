@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    /* properties for specific element IDs */
+    #container {
+      width: 0px;
+      height: 0px;
+    }
+    #myVideo {
+      margin: 0;
+    }
+  </style>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hand Gesture Classifier</title>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <style>
+      * {
+          overflow: hidden; 
+          margin: 0;
+          outline: 0;
+          padding: 0;
+          vertical-align: top;
+      }
+      canvas, video, .input_box, div.input_and_prediction {
+        position: absolute;
+      }
+      video {
+        z-index: -1;
+        transform: scale(-1, 1);            /*For Firefox (& IE) */
+        -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
+      }
+      div.left_content {
+        float: left;
+        visibility: hidden;
+      }
+      div.right_content {
+        float: right;
+        visibility: hidden;
+      }
+      p, h1, h2, ul, li, ol{
+        position: relative;
+      }
+      h1.title {
+        text-align: center;
+        padding-top: 50px;
+        padding-bottom: 50px;
+      }
+      .left_content, ul, ol, li {
+        z-index: 1;
+      }
+      .right_content {
+        z-index: 5;
+      }
+      .right_content, .left_content {
+        max-width: 600px;
+        padding-right: 40px;
+        padding-left: 40px;
+      }
+      h2 {
+        text-align: center;
+      }
+      p{
+        text-align: left;
+      }
+      li{
+        list-style-position: inside;
+        left: 20px;
+      }
+      div.input_and_prediction {
+        top: 480px;
+        left: 650px;
+        visibility: hidden;
+      }
+      h4.input_and_prediction{
+        width: 600px;
+      }
+      label.input_and_prediction {
+        font-weight: 700;
+        font-size: 20px;
+      }
+      .input_and_prediction{
+        text-align: center;
+      }
+      </style>
+  </head>
+  <body>
+    <h1 class="title" id="title">Gesture Recognition by Josh Clemons</h1>
+
+    <div class="left_content" id="left_content">
+      <h2 class="left_content">What does this application do?</h2>
+      <p class="left_content">This application recognizes simple hand gestures performed in front of one's webcam. Images from your webcam's video stream are downloaded, processed, and fed them into a modified version of the VGG-16 convolutional neural network. The algorithm's prediction and prediction confidence are returned beneath the "Prediction" field.</p>
+      <br>
+      <p class="left_content">This algorithm predicts the hand gestures listed below.</p>
+      <ul class="left_content"> 
+        <li>Open palm</li>
+        <li>Fist</li>
+        <li>Closed palm</li>
+        <li>L</li>
+        <li>Thumbs up</li>
+      </ul>  
+      <br><br><br>
+      <h2 class="left_content">How do I use this application?</h2>
+      <p class="left_content">To use this application, follow the steps below.</p>
+        <ol class="left_content">
+          <li>Permit the website access to your computer's webcam</li>
+          <li>Allow the camera to record for several seconds until the image stabilizes and environment lighting becomes constant</li>
+          <li>Completely step out of the camera's field of view and type "b" into the "Input key" box. This saves the current image as the "background image" that will be subtracted from all future images to isolate the presented hand gesture.</li>
+          <li>Perform any one of the hand gestures listed above and see how the model performs!</li>
+        </ol>  
+    </div>
+
+    <div class="right_content">
+      <h2 class="right_content">What do these videos show?</h2>
+      <p class="right_content">The top video shows your webcam's video stream while the bottom video shows the processed images that are fed into the neural network. This algorithm is very sensitive to changes in environment lighting, so it is important to monitor the processed images and ensure that the background remains black while only your hand and arm appear white. If this is not the case, the algorithm will be fed noisy data and may not function properly.</p> 
+      <br>
+      <p class="right_content">If the background appears noisy, step out of the camera's field of view and allow its lighting to restabilize. If the background still appears noisy, type "r" into the "Input" box to erase the current background image then type "b" to save a new background.</p> 
+      <br>
+      <p class="right_content">To pause the current frame and prediction, type "p" into the "Input" box. Type "p" again to resume predictions.</p>
+      <br><br><br>
+      <h2 class="right_content">Project background and contact information</h2>
+      <p class="right_content">I developed and deployed this gesture recognition application to satisfy the capstone project requirement for my Springboard's Machine Learning Engineering bootcamp course. This project has exposed me to numerous facets of machine learning and software engineering including data collection, data processing, machine learning modeling, RESTful API design, model deployment, and web design.</p> 
+      <br>
+      <p class="right_content">My contact information is listed below if you would like to get a hold of me or check out my additional work.</p> 
+      <ul class="right_content"> 
+        <li><a href="mailto:clemonsjoshua6@gmail.com">Email: clemonsjoshua6@gmail.com</a></li>
+        <li><a href="https://github.com/JoshBClemons/">GitHub: /JoshBClemons</a></li>
+        <li><a href="https://www.linkedin.com/in/josh-clemons-56b87291/">LinkedIn: /josh-clemons-56b87291</a></li>
+      </ul>  
+    </div>
+
+    <div id="container">
+      <video id="myVideo" autoplay="true"></video>
+    </div>
+
+    <div class="input_and_prediction" id="input_and_prediction">     
+      <label class="input_and_prediction" for="key_press">Input key <span id="background">'b'</span>, <span id="reset">'r'</span>, or <span id="pause">'p'</span></label>
+      <input class="input_and_prediction" type="text" id="key_press"></input>
+      <br><br>
+      <h3 class="input_and_prediction">Prediction</p> 
+      <h4 class="input_and_prediction" id="label">No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions.</p> 
+    </div>
+
+    <script src="/static/video_setup.js"></script>
+    <script src="/static/formatting.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script id="gestClassify" src="/static/gestClassify.js" data-source="myVideo" data-mirror="true" data-uploadWidth="1280"></script>
+
+    <!-- onmousemove = function(e){console.log("mouse location:", e.clientX, e.clientY)} -->
+  </body>
+</html>

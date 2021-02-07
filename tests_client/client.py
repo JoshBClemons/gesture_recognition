@@ -123,21 +123,30 @@ time.sleep(2.0)
 
 timestamp_of_last_socket_refresh = time.time()
 term_time = 5
+output_frames = []
 while True:
     # read the frame from the camera and send it to the server
     ret, frame = cap.read()
+    output_frames.append(frame)
+
     if ret == False:
         raise Exception('No frame returned. Check connection to camera')
-    try:
-        send_image()
-    except TimeoutError:
-        print("Sending timeout.. reconnect to server")
-        sender = ImageSender(connect_to=server_loc.format(args["server_ip"]))
+    # try:
+    #     send_image()
+    # except TimeoutError:
+    #     print("Sending timeout.. reconnect to server")
+    #     sender = ImageSender(connect_to=server_loc.format(args["server_ip"]))
 
     # Terminate stream
     elapsed_time = time.time() - timestamp_of_last_socket_refresh
     if elapsed_time > term_time:
         print("Termination time reached. Ending stream.")
         break
+
+import csv
+    
+with open('client_test.csv', 'w') as myfile:
+    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+    wr.writerow(output_frames)
 
 cap.release()
