@@ -3,8 +3,6 @@
 import gesture_classification
 from PIL import Image
 from flask import Flask, request, Response
-import pdb
-import jsonpickle
 import cv2
 import base64
 

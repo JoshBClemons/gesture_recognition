@@ -23,9 +23,7 @@ import time
 import pdb
 
 # Import model
-par_dir = 'C://Users//clemo//git//motion_identification//motion_identification//'
-model_name = 'final_VGG.h5'
-path = join(par_dir, model_name)
+path = 'final_VGG.h5'
 model = load_model(path)
 
 # import labels
