@@ -5,6 +5,7 @@ from PIL import Image
 from flask import Flask, request, Response
 import cv2
 import base64
+from os.path import join, dirname, realpath
 
 app = Flask(__name__)
 current_key = ''
@@ -19,7 +20,9 @@ def after_request(response):
 
 @app.route('/')
 def index():
-    return Response(open('./static/local.html').read(), mimetype="text/html")
+    global dir_path
+    path = join(dir_path,'static/local.html')
+    return Response(open(path).read(), mimetype="text/html")
 
 @app.route('/image', methods=['POST'])
 def image():  
@@ -62,8 +65,12 @@ def key():
         return Response(response="paused", status=200)
 
 if __name__ == '__main__':
-	# without SSL
-    app.run(debug=False, host='0.0.0.0')
+    dir_path = dirname(realpath(__file__))
 
-	# with SSL
-    #app.run(debug=True, host='0.0.0.0', ssl_context=('ssl/server.crt', 'ssl/server.key'))
+	# without SSL
+    # app.run(debug=False, port=80, host='0.0.0.0')
+
+	# with SSL. to access, navigate to https://localhost:443
+    cert_path = join(dir_path,'cert.pem')
+    key_path = join(dir_path,'key.pem')
+    app.run(debug=True, port=443, host='0.0.0.0', ssl_context=(cert_path, key_path))

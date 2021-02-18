@@ -15,7 +15,7 @@ NOTE: This script is currently incomplete.
 """
 
 from keras.models import load_model
-from os.path import join
+from os.path import join, dirname, realpath
 import json
 import numpy as np
 import cv2
@@ -23,7 +23,8 @@ import time
 import pdb
 
 # Import model
-path = 'final_VGG.h5'
+dir_path = dirname(realpath(__file__))
+path = join(dir_path,'final_VGG_1.h5')
 model = load_model(path)
 
 # import labels
@@ -31,9 +32,9 @@ model = load_model(path)
 # with open(filepath) as infile:
 #     label_dict = json.load(infile)
 gestures_map = {0: 'open palm',
-                1: 'fist',
-                2: 'closed palm',
-                3: 'L',
+                1: 'closed palm',
+                2: 'L',
+                3: 'fist',
                 4: 'thumbs up',
                 }
 
@@ -114,64 +115,11 @@ def classify(image, current_key):
         frame_to_page = frame[0::split, 0::split]
         label = "No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions."
 
-    # # capture background
-    # # if k == 27: # escape     
-    # #     break
     if current_key == 'b':
         global bgModel 
         background_set = True
         bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold)
         
         current_key = ''
-
-    # elif k == ord('r'):
-    #     background_set = False
-    #     bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold)
-    #     background_set = True
-    #     print('Background reset. New background captured')
     
     return (label, frame_to_page, current_key)
-
-
-    # FROM BEFORE
-    # Gesture recognition and classification
-    # (boxes, scores, classes, num) = sess.run(
-    #     [detection_boxes, detection_scores, detection_classes, num_detections],
-    #     feed_dict={image_tensor: image_np_expanded})
-
-    # classes = np.squeeze(classes).astype(np.int32)
-    # scores = np.squeeze(scores)
-    # boxes = np.squeeze(boxes)
-
-    # obj_above_thresh = sum(n > threshold for n in scores)
-    # print("detected %s objects in image above a %s score" % (obj_above_thresh, threshold))
-
-    # output = []
-
-    # # Add some metadata to the output
-    # item = Object()
-    # item.version = "0.0.1"
-    # # item.numObjects = obj_above_thresh
-    # item.threshold = threshold
-    # item.label = 'Thumbs Up'
-    # output.append(item)
-
-    # for c in range(0, len(classes)):
-    #     class_name = category_index[classes[c]]['name']
-    #     if scores[c] >= threshold:      # only return confidences equal or greater than the threshold
-    #         print(" object %s - score: %s, coordinates: %s" % (class_name, scores[c], boxes[c]))
-
-    # class_name, height, width etc used in gestClassify.js --> drawBoxes function to define detection boxes 
-    #         item = Object()
-    #         item.name = 'Object'
-    #         item.class_name = class_name
-    #         item.score = float(scores[c])
-    #         item.y = float(boxes[c][0])
-    #         item.x = float(boxes[c][1])
-    #         item.height = float(boxes[c][2])
-    #         item.width = float(boxes[c][3])
-
-    #         output.append(item)
-    # pdb.set_trace()
-    # outputJson = json.dumps([ob.__dict__ for ob in output]) # outputs JSON file to HTML
-    # return outputJson
