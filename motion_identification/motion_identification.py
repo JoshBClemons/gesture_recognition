@@ -36,7 +36,7 @@
 import pdb
 from .models import Frame, User
 # from .events import push_model
-from . import db#, stats
+from . import db, image_directory#, stats
 from . import featurizer
 from . import predictor
 from .auth import verify_token
@@ -145,7 +145,7 @@ def image():
             output_dict['label'] = label
 
             # save original and processed images in directory correponding to user
-            root_dir = 'D:\\gesture_recognition_images' # replace with more generic path 
+            root_dir = image_directory
 
             # save original images
             orig_dir = os.path.join(root_dir, 'original')
@@ -194,7 +194,7 @@ def image():
 
             db.session.add(frame)
             db.session.commit()
-                        
+#             pdb.set_trace()        
             # clean up database session
             db.session.remove()
             return output_dict

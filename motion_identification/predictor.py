@@ -9,7 +9,8 @@ from .objects import gestures_map
 
 # Import model
 dir_path = dirname(realpath(__file__))
-path = join(dir_path,'models\\final_VGG_1.h5')
+path = join(dir_path,'models')
+path = join(path,'final_VGG_1.h5')
 model = load_model(path)
 
 def predict_gesture(frame):

@@ -123,7 +123,7 @@ x_train_path, x_val_path, y_train, y_val = train_test_split(x_data, y_data, test
 
 # build model
 from builder import build_and_save_model
-model_dir = 'C://Users//clemo//git//motion_identification//motion_identification//models' # MAKE MORE GENERIC 
+model_dir = os.path.join(os.path.dirname( __file__), 'models')
 model_path = build_and_save_model(x_train_path, y_train, model_dir) # wait until data collection infrastructure in place to train new models
 
 # evaluate model performance and add results to database

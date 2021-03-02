@@ -27,6 +27,7 @@ from . import models
 # Import Socket.IO events so that they are registered with Flask-SocketIO
 # from . import events  # noqa
 
+image_directory = os.path.join(os.path.dirname( __file__ ), 'gesture_recognition_images')
 
 def create_app(config_name=None, main=True):
     if config_name is None:
@@ -66,6 +67,6 @@ def create_app(config_name=None, main=True):
 
     # # Register async tasks support
     # from .tasks import tasks_bp as tasks_blueprint
-    # app.register_blueprint(tasks_blueprint, url_prefix='/tasks')
+    # app.register_blueprint(tasks_blueprint, url_prefix='/tasks')    
 
     return app

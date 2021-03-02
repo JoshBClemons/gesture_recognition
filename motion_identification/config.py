@@ -7,7 +7,7 @@ basedir = os.path.abspath(os.path.dirname(__file__)) # current directory
 class Config(object):
     DB_HOST = 'localhost'
     DB_USER = 'postgres'
-    DB_PASS = '35351291'
+    DB_PASS = 'temp_pass'
     DB_NAME = 'postgres'
     DEBUG = False
     TESTING = False

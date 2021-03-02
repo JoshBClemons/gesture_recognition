@@ -36,7 +36,7 @@ def verify_password(username, password): # nickname, password
 @basic_auth.error_handler
 def password_error(user):
     """Return a 401 error to the client."""
-    pdb.set_trace()
+#     pdb.set_trace()
     # To avoid login prompts in the browser, use the "Bearer" realm.
     return (jsonify({'error': 'authentication required'}), 401,
             {'WWW-Authenticate': 'Bearer realm="Authentication Required"'})

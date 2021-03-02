@@ -68,12 +68,10 @@ def rotate(frame, df_row, df_feats):
     # mirror image 
     from keras.preprocessing.image import ImageDataGenerator
     import time
-
     datagen = ImageDataGenerator(horizontal_flip=True)
     frame_ext = frame.reshape((1,) + frame.shape) 
     for frame_mirrored in datagen.flow(frame_ext, batch_size=1):
         frame_mirrored = frame_mirrored.reshape((144,256,3))
-   
         # flip mirrored image
         frame_mirrored_flipped = tf.image.rot90(frame_mirrored)
         frame_mirrored_flipped = tf.image.rot90(frame_mirrored_flipped)
