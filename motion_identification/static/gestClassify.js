@@ -23,13 +23,14 @@ var prev_size = 0;
 //return classification result and processed frame from XML request
 function postFile(file) {
     // debugger
-    if (file.size != prev_size && prev_key != 'p') {
+    if (file.size != prev_size && prev_key != 'p' && typeof(token) != 'undefined') {
         let formdata = new FormData();
         formdata.append("image", file); //use formdata.get("image") to print file contents
         formdata.append("threshold", scoreThreshold);
+        formdata.append("token", token);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', apiServer + '/image', true);      // POSTs image and threshold to localhost:5000/image
-        xhr.onload = function() {              // executes this anonymous function when request completes successfully
+        xhr.onload = function() {              // executes this anonymous function when request completes successfully           
             if (this.status === 200) {
                 output = JSON.parse(this.response);
                 imgsrc = 'data:image/jpeg;base64,' + output.train_image;

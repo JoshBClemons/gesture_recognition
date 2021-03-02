@@ -12,9 +12,55 @@
   </style>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Hand Gesture Classifier</title>
+
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <style>
+      body {font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", Arial, sans-serif;}
+
+      /* Style login area */
+      .log_form {
+        position: absolute;
+        z-index: 1;
+        left: 0px;
+        top: 0px;
+        width: 33%;
+        height: 14%;
+        padding-top: 5px;
+        padding-left: 5px;
+      }
+
+      input[type=username], input[type=password] {
+        position: relative;
+        width: 50%;
+        left: 25%;
+        padding: 5px;
+        margin: 5px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+      }
+
+      button[type=submit] {
+        position: relative;
+        width: 50%;
+        left: 25%;
+        padding: 5px;
+        margin: 5px 5px;
+        background-color: #1100ff;
+        color: white;
+        border: 1px solid #ccc;
+        cursor: pointer;
+      }
+
+      label.checkbox {
+        position: relative;
+        left: 40%;
+        padding: 5px;
+        margin: 5px 5px;
+      }
+
       * {
           overflow: hidden; 
           margin: 0;
@@ -135,17 +181,27 @@
 
     <div class="input_and_prediction" id="input_and_prediction">     
       <label class="input_and_prediction" for="key_press">Input key <span id="background">'b'</span>, <span id="reset">'r'</span>, or <span id="pause">'p'</span></label>
-      <input class="input_and_prediction" type="text" id="key_press"></input>
+      <input class="input_and_prediction" id="key_press"></input>
       <br><br>
       <h3 class="input_and_prediction">Prediction</p> 
       <h4 class="input_and_prediction" id="label">No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions.</p> 
+    </div>
+
+    <div class="log_form", id="log_form">
+      <input id="username" type="username" placeholder="Email" name="uname" required>
+      <input id="password" type="password" placeholder="Password" name="psw" required> 
+      <button type="submit", id="login_button">Login to start gesture prediction</button>
+      <br>
+      <label class="checkbox">
+        <input type="checkbox" checked="checked" name="remember"> Remember me
+      </label>
     </div>
 
     <script src="/static/video_setup.js"></script>
     <script src="/static/formatting.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script id="gestClassify" src="/static/gestClassify.js" data-source="myVideo" data-mirror="true" data-uploadWidth="1280"></script>
-
+    <script id="login_form" src="/static/login_form.js"></script>
     <!-- onmousemove = function(e){console.log("mouse location:", e.clientX, e.clientY)} -->
   </body>
 </html>
