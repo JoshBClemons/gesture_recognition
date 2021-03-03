@@ -140,9 +140,12 @@ def image():
 
             # save original and processed images in directory correponding to user
             root_dir = image_directory
+<<<<<<< HEAD
             if os.path.isdir(root_dir) == False:
                 print('[INFO] Creating file storage system.')
                 os.mkdir(root_dir)
+=======
+>>>>>>> 3952c3d486fbf2bf12304b497484301cf9de415d
 
             # save original images
             orig_dir = os.path.join(root_dir, 'original')
