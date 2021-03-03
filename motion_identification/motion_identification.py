@@ -1,19 +1,12 @@
 #!/usr/bin/env python
 
 # TO DO
-# investigate what's wrong with conf_preds table and orchestrator bugs
-# package for Andre 
-# add functionality to input ground-truth label on webpage and in python 
-    # 1) set background
-    # 2) Actual gesture
-    # Predicted gesture
+# move motion_identification content to events with socketio implemented 
 # on login, scrape IP address and session information from request header (or similar)
     # pull user's previous session, increment session number 1, store as current session number
     # session ends when user exits page 
-# move motion_identification content to events with socketio implemented 
 # modify motion_identification to render high-level basics (run first page, run /stats/)
 # create rendering for stats page with JS React, etc. (use sketch to design statistics dashboard)
-# add button to request permission to store data. state what is collected. add separate button to collect raw image data too 
 # verify monitoring works 
 # enable timing between systems
     # setup model builder to run once a day
@@ -24,7 +17,6 @@
 # ? setup using flask/gunicorn/nginx
 # replicate model on AWS using EC2, SageMaker, Data Lake, etc. 
 # ? test using Swagger
-# clean up HTML formatting
 # update config.py file
 # update orchestrator and all similar files to run with SQLAlchemy
 # replace print statements with logging
@@ -36,7 +28,7 @@
 import pdb
 from .models import Frame, User
 # from .events import push_model
-from . import db#, stats
+from . import db, image_directory#, stats
 from . import featurizer
 from . import predictor
 from .auth import verify_token
@@ -97,45 +89,46 @@ def image():
 
             # DUMMY VARIABLES
             global frame_count
+            true_gest = request.form['gesture']
             frame_count += 1
-            session_id = 6
+            session_id = user.last_instance # increment with websocket implementation
             instance = str(user_id) + '_' + str(session_id) + '_' + str(frame_count)
             now = datetime.datetime.now()
             date = now.strftime("%Y-%m-%d %H:%M:%S") 
-            ip_address = '192.168.1.1'
+            ip_address = request.remote_addr # need to verify this 
             image_path = instance + '.jpg'
-            true_gest = 'fist'
-            
             # get webcam image
             image_file = request.files['image']  # get the image
             image_object = Image.open(image_file)
             frame_orig = cv2.cvtColor(np.array(image_object), cv2.COLOR_RGB2BGR)
             
             # process frame
-            global current_key
             global start_countdown
             global pause_count
-            if current_key == '':
+            user_command = request.form['command']
+            if user_command == '':
                 frame_processed = featurizer.process(frame_orig)
                 if start_countdown:
                     pause_count+=1 
-            elif current_key == 'r':
+            elif user_command == 'r':
                 frame_processed = featurizer.process(frame_orig, reset=True)
                 start_countdown = False
                 pause_count = 0
-            elif current_key == 'b':
+            elif user_command == 'b':
                 frame_processed = featurizer.process(frame_orig, set_background=True)
                 start_countdown = True
-            current_key = ''
 
             # predict gesture
-            if pause_count >= 2:
+            if true_gest == '' and start_countdown == True:
+                label = "No gesture predicted. Please input gesture."
+                pred_gest = 'NA'
+                pred_conf = pred_time = 0
+            elif pause_count >= 2:
                 [label, pred_gest, pred_conf, pred_time] = predictor.predict_gesture(frame_processed)
             else: 
                 label = "No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions."
                 pred_gest = 'NA'
-                pred_conf = 0
-                pred_time = 0 
+                pred_conf = pred_time = 0
             
             # package results in dictionary
             output_bin = cv2.imencode('.jpg', frame_processed)[1].tobytes()
@@ -143,13 +136,18 @@ def image():
             output_dict = {}
             output_dict['train_image'] = encoded_output
             output_dict['label'] = label
+            output_dict['command'] = user_command
 
             # save original and processed images in directory correponding to user
-            root_dir = 'D:\\gesture_recognition_images' # replace with more generic path 
+            root_dir = image_directory
+            if os.path.isdir(root_dir) == False:
+                print('[INFO] Creating file storage system.')
+                os.mkdir(root_dir)
 
             # save original images
             orig_dir = os.path.join(root_dir, 'original')
             if os.path.isdir(orig_dir) == False:
+                # pdb.set_trace()
                 print('[INFO] Creating directory for original images.')
                 os.mkdir(orig_dir)
             user_dir = os.path.join(orig_dir, str(user_id))
@@ -160,7 +158,7 @@ def image():
                 cv2.imwrite(raw_path, frame_orig)
 
             # save processed images
-            if pause_count >= 2:
+            if pred_time > 0:
                 processed_dir = os.path.join(root_dir, 'processed')
                 if os.path.isdir(processed_dir) == False:
                     print('[INFO] Creating directory for processed images.')
@@ -194,7 +192,7 @@ def image():
 
             db.session.add(frame)
             db.session.commit()
-                        
+#             pdb.set_trace()        
             # clean up database session
             db.session.remove()
             return output_dict

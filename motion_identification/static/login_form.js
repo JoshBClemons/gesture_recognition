@@ -2,7 +2,8 @@ const t = document.getElementById('gestClassify');
 const apiServer2 = t.getAttribute("data-apiServer") || window.location.origin; //the full TensorFlow Object Detection API server url
 var token
 login_button = document.getElementById("login_button")
-login_button.onclick = function(){
+
+var process_login = function () {
     username = document.getElementById("username").value
     password = document.getElementById("password").value
     var xhr = new XMLHttpRequest();
@@ -12,7 +13,8 @@ login_button.onclick = function(){
         if (this.status === 200) {
             token = JSON.parse(this.response)['token']
             var login_form = document.getElementById('log_form');
-            login_form.style.display = "none";
+            login_form.style.visibility = "hidden";
+            u.style.visibility = "visible"
             imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
             imageCanvas.toBlob(postFile, 'image/jpeg'); 
         }
@@ -21,5 +23,11 @@ login_button.onclick = function(){
         }
     };
     xhr.send(null);
-};
+}
 
+login_button.onclick = process_login
+$("#password").keypress(function(event) {
+    if (event.keyCode === 13) { 
+        process_login()
+    } 
+})

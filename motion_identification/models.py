@@ -18,6 +18,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     token = db.Column(db.String(64), nullable=True, unique=True)
     online = db.Column(db.Boolean, default=False)
+    last_instance = db.Column(db.Integer, default=0)
     frames = db.relationship('Frame', lazy='dynamic', backref='user')
 
     @property
