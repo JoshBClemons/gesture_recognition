@@ -8,7 +8,7 @@ eventlet.monkey_patch()
 
 from flask_script import Manager, Command, Server as _Server, Option
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Numeric, Date
-from motion_identification import create_app, db, image_directory#, engine
+from motion_identification import create_app, db, image_directory, socketio#, engine
 
 manager = Manager(create_app)
 
@@ -29,10 +29,9 @@ class Server(_Server):
         return options
 
     def __call__(self, app, host, port):
-        app.run(
-                host='0.0.0.0',
-                port=5000,
-                debug=False,
+        socketio.run(app,
+                    host=host,
+                    port=port,
         )
 
 manager.add_command("runserver", Server())
