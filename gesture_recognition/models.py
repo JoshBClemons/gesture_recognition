@@ -18,7 +18,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     token = db.Column(db.String(64), nullable=True, unique=True)
     online = db.Column(db.Boolean, default=False)
-    last_instance = db.Column(db.Integer, default=0)
+    num_logins = db.Column(db.Integer, default=0)
     frames = db.relationship('Frame', lazy='dynamic', backref='user')
 
     @property
@@ -38,12 +38,14 @@ class User(db.Model):
         self.token = binascii.hexlify(os.urandom(32)).decode('utf-8')
         return self.token
 
-    # def ping(self):
-    #     """Marks the user as recently seen and online."""
-    #     self.last_seen_at = timestamp()
-    #     last_online = self.online
-    #     self.online = True
-    #     return last_online != self.online
+    def ping(self):
+        """Marks the user as recently seen and online."""
+        self.last_seen_at = timestamp()
+        self.online = True
+
+    def new_login(self):
+        """Increments number of times user has logged in."""
+        self.num_logins += 1
 
     @staticmethod
     def create(data):
@@ -79,8 +81,7 @@ class User(db.Model):
     @staticmethod
     def find_offline_users():
         """Find users that haven't been active and mark them as offline."""
-        users = User.query.filter(User.last_seen_at < timestamp() - 60,
-                                  User.online == True).all()  # noqa
+        users = User.query.filter(User.last_seen_at < timestamp() - 60, User.online == True).all()  
         for user in users:
             user.online = False
             db.session.add(user)

@@ -16,52 +16,40 @@ let imageCanvas = document.createElement('canvas');
 let imageCtx = imageCanvas.getContext("2d");
 
 var prev_size = 0;
-
-//return classification result and processed frame from XML request
+// var socket = io()
+var socket = io.connect(location.protocol + '//' + location.hostname + ':' + location.port);
+// debugger
 function postFile(file) {
     if (file.size != prev_size && send_key != 'p' && typeof(token) != 'undefined') {
-        let formdata = new FormData();
-        formdata.append("image", file);
-        formdata.append("token", token);
-        formdata.append("command", send_key);
-        formdata.append("gesture", send_gesture);
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', apiServer + '/image', true);      // POSTs image and token to localhost:5000/image
-        xhr.onload = function() {              // executes this anonymous function when request completes successfully           
-            if (this.status === 200) {
-                output = JSON.parse(this.response);
-                imgsrc = 'data:image/jpeg;base64,' + output.train_image;
-                label = output.label;
-                if (output.command != '') {
-                    send_key = ''
-                }
-                var img = new Image()
-                img.onload = function() {
-                    // draw training image
-                    drawCtx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
-
-                    // post classification label
-                    document.getElementById('label').innerHTML = label;
-                    setTimeout(() => {
-                        imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
-                        imageCanvas.toBlob(postFile, 'image/jpeg'); 
-                    }, 250)
-                };  
-                img.src = imgsrc;  
-            }
-            else {
-                console.error(xhr);
-            }
-        };
-        xhr.send(formdata);
         prev_size = file.size;
+        socket.emit('post_image', {image: file, token: token, command: send_key, gesture: send_gesture});
     } else if (send_key == 'p') {
         setTimeout(() => {
             imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
             imageCanvas.toBlob(postFile, 'image/jpeg'); 
-        }, 100)
+        }, 500)
     }
 }
+socket.on('test', function(output) { 
+    imgsrc = 'data:image/jpeg;base64,' + output.train_image;
+    label = output.label;
+    if (output.command != '') {
+        send_key = ''
+    }
+    var img = new Image()
+    img.onload = function() {
+        // draw training image
+        drawCtx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
+
+        // post classification label
+        document.getElementById('label').innerHTML = label;
+        setTimeout(() => {
+            imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
+            imageCanvas.toBlob(postFile, 'image/jpeg'); 
+        }, 500)
+    };  
+    img.src = imgsrc;  
+});
 
 //Start object detection
 function startObjectDetection() {

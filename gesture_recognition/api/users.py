@@ -17,7 +17,6 @@ def new_user():
     Register a new user.
     This endpoint is publicly available.
     """
-    r = 3
     user = User.create(request.get_json() or {})
     if User.query.filter_by(username=user.username).first() is not None:
         abort(400)

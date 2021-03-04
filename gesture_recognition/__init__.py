@@ -12,7 +12,8 @@ from config import config
 # Flask extensions
 db = SQLAlchemy()
 # bootstrap = Bootstrap()
-# socketio = SocketIO()
+socketio = SocketIO()
+image_directory = os.path.join(os.path.dirname( __file__ ), 'gesture_recognition_images')
 # celery = Celery(__name__,
 #                 broker=os.environ.get('CELERY_BROKER_URL', 'redis://'),
 #                 backend=os.environ.get('CELERY_BROKER_URL', 'redis://'))
@@ -25,9 +26,7 @@ from . import models
 # from .tasks import run_flask_request  # noqa
 
 # Import Socket.IO events so that they are registered with Flask-SocketIO
-# from . import events  # noqa
-
-image_directory = os.path.join(os.path.dirname( __file__ ), 'gesture_recognition_images')
+from . import events  
 
 def create_app(config_name=None, main=True):
     if config_name is None:
@@ -41,6 +40,7 @@ def create_app(config_name=None, main=True):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     # bootstrap.init_app(app)
+    socketio.init_app(app)
     # if main:
     #     # Initialize socketio server and attach it to the message queue, so
     #     # that everything works even when there are multiple servers or

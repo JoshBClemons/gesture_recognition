@@ -17,19 +17,16 @@ def verify_password(username, password): # nickname, password
     if not username or not password:
         return False
     user = User.query.filter_by(username=username).first()
-    if user is None:
+    if user is None: # if not a user, create the user 
         user_dict = {'username': username, 'password': password}
         user = User.create(user_dict)
-        db.session.add(user)
-        db.session.commit()
     elif not user.verify_password(password):
         return False
-    # if user.ping():
-    #     from .events import push_model
-    #     push_model(user)
-    else: 
-        db.session.add(user)
-        db.session.commit()
+    else:
+        user.new_login()       
+    user.ping() # mark user as online   
+    db.session.add(user)
+    db.session.commit()
     g.current_user = user
     return True
 
@@ -44,21 +41,19 @@ def password_error(user):
 @token_auth.verify_token
 def verify_token(token, add_to_session=False):
     """Token verification callback."""
-    # if add_to_session:
-    #     # clear the session in case auth fails
-    #     if 'username' in session:
-    #         del session['username']
+    if add_to_session:
+        # clear the session in case auth fails
+        if 'username' in session:
+            del session['username']
     user = User.query.filter_by(token=token).first()
     if user is None:
         return False
-    # if user.ping():
-    #     from .events import push_model
-    #     push_model(user)
-    # db.session.add(user)
-    # db.session.commit()
+    user.ping()
+    db.session.add(user)
+    db.session.commit()
     g.current_user = user
-    # if add_to_session:
-    #     session['username'] = user.username
+    if add_to_session:
+        session['username'] = user.username
     return True
 
 @token_auth.error_handler
