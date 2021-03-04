@@ -1,30 +1,37 @@
 #!/usr/bin/env python
 
 # TO DO
-# modify architecture so that repository includes 3 folders: application, images, orchestrator files 
+
+## ONLINE
+# modify loging process
+    # onload, get list of all users
+    # if entered username not included, place POST request to create new user with password. reject if no password.
+    # if entered username is included, send to /token endpoint to return user's token 
+# develop unit tests
+
+## OFFLINE
 # modify motion_identification to render high-level basics (run first page, run /stats/)
 # create simple rendering for monitoring page (use sketch to design monitoring dashboard)
 # verify monitoring works while application runs with single user  
 # enable timing between systems --> sleep 
     # setup model builder to run once a day
     # setup evaluator to compare models once a day 
-# research and develop unit tests
 # ? setup using flask/gunicorn/nginx
+
+## DEPLOYMENT
 # replicate model on AWS using EC2
 # login from multiple users and see how poorly latency is impacted. see if improvement with celery
 # deploy using SageMaker, Data Lake, etc. 
 # verify monitoring works while application runs with multiple users 
 # ? test using Swagger
-# update config.py file
 # reduce text on website. add link to more information
     # include instructions and basic contact info 
 # modify to reset when new user logs in 
 
-# later
-# ping_user
+## MAYBE
 # don't process image entries if user opts out of saving images (no paths exist)
 # replace print statements with logging
- # implement airflow
+# implement airflow
 
 
 import pdb
@@ -56,10 +63,10 @@ def before_first_request():
                 users = User.find_offline_users()
                 db.session.remove() 
                 time.sleep(5)
-
-    thread = threading.Thread(target=find_offline_users,
-                                args=(current_app._get_current_object(),))
-    thread.start()
+    if not current_app.config['TESTING']:
+        thread = threading.Thread(target=find_offline_users,
+                                  args=(current_app._get_current_object(),))
+        thread.start()
 
 # @main.before_app_request
 # def before_request():

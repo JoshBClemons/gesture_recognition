@@ -1,3 +1,4 @@
+import pdb
 import os
 
 from flask import Flask
@@ -73,9 +74,6 @@ def create_app(config_name=None, main=True):
     app.config.from_object(config[config_name])
 
     # Initialize flask extensions
-    engine_str = f'postgresql://{config[config_name].DB_USER}:{config[config_name].DB_PASS}@{config[config_name].DB_HOST}/{config[config_name].DB_NAME}'
-    app.config['SQLALCHEMY_DATABASE_URI'] = engine_str
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     # bootstrap.init_app(app)
     socketio.init_app(app)

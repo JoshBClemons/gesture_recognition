@@ -16,15 +16,3 @@ def new_token():
         db.session.add(g.current_user)
         db.session.commit()
     return jsonify({'token': g.current_user.token})
-
-# @api.route('/tokens', methods=['DELETE'])
-# @token_auth.login_required
-# def revoke_token():
-#     """
-#     Revoke a user token.
-#     This endpoint is requires a valid user token.
-#     """
-#     g.current_user.token = None
-#     db.session.add(g.current_user)
-#     db.session.commit()
-#     return '', 204

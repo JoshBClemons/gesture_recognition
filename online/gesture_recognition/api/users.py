@@ -22,27 +22,27 @@ def new_user():
         abort(400)
     db.session.add(user)
     db.session.commit()
-    # r = jsonify(user.to_dict())
-    # r.status_code = 201
-    # r.headers['Location'] = url_for('api.get_user', id=user.id)
+    r = jsonify(user.to_dict())
+    r.status_code = 201
+    r.headers['Location'] = url_for('api.get_user', id=user.id)
     return r
 
 
-# @api.route('/users', methods=['GET'])
-# @token_optional_auth.login_required
-# def get_users():
-#     """
-#     Return list of users.
-#     This endpoint is publicly available, but if the client has a token it
-#     should send it, as that indicates to the server that the user is online.
-#     """
-#     users = User.query.order_by(User.updated_at.asc(), User.nickname.asc())
-#     if request.args.get('online'):
-#         users = users.filter_by(online=(request.args.get('online') != '0'))
-#     if request.args.get('updated_since'):
-#         users = users.filter(
-#             User.updated_at > int(request.args.get('updated_since')))
-#     return jsonify({'users': [user.to_dict() for user in users.all()]})
+@api.route('/users', methods=['GET'])
+@token_optional_auth.login_required
+def get_users():
+    """
+    Return list of users.
+    This endpoint is publicly available, but if the client has a token it
+    should send it, as that indicates to the server that the user is online.
+    """
+    users = User.query.order_by(User.updated_at.asc(), User.nickname.asc())
+    if request.args.get('online'):
+        users = users.filter_by(online=(request.args.get('online') != '0'))
+    if request.args.get('updated_since'):
+        users = users.filter(
+            User.updated_at > int(request.args.get('updated_since')))
+    return jsonify({'users': [user.to_dict() for user in users.all()]})
 
 
 # @api.route('/users/<id>', methods=['GET'])
