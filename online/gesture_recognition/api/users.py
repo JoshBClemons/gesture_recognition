@@ -1,5 +1,3 @@
-# UNSURE IF THIS WILL BE USED 
-
 import pdb
 from flask import request, abort, jsonify, g
 
@@ -11,38 +9,32 @@ from ..models import User
 from . import api
 
 
-@api.route('/users', methods=['POST'])
-def new_user():
-    """
-    Register a new user.
-    This endpoint is publicly available.
-    """
-    user = User.create(request.get_json() or {})
-    if User.query.filter_by(username=user.username).first() is not None:
-        abort(400)
-    db.session.add(user)
-    db.session.commit()
-    r = jsonify(user.to_dict())
-    r.status_code = 201
-    r.headers['Location'] = url_for('api.get_user', id=user.id)
-    return r
-
-
 @api.route('/users', methods=['GET'])
-@token_optional_auth.login_required
 def get_users():
     """
     Return list of users.
     This endpoint is publicly available, but if the client has a token it
     should send it, as that indicates to the server that the user is online.
     """
-    users = User.query.order_by(User.updated_at.asc(), User.nickname.asc())
-    if request.args.get('online'):
-        users = users.filter_by(online=(request.args.get('online') != '0'))
-    if request.args.get('updated_since'):
-        users = users.filter(
-            User.updated_at > int(request.args.get('updated_since')))
+    users = User.query.order_by(User.updated_at.asc(), User.username.asc())
     return jsonify({'users': [user.to_dict() for user in users.all()]})
+
+@api.route('/users', methods=['POST'])
+def new_user():
+    """
+    Register a new user.
+    This endpoint is publicly available.
+    """
+    creds = request.get_json()
+    if creds['username'] == '' or creds['username'] == None or creds['password'] == '' or creds['password'] == None:
+        abort(400)
+    user = User.create(creds or {})
+    if User.query.filter_by(username=user.username).first() is not None:
+        abort(400)
+    user.generate_token()
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({'token': user.token})
 
 
 # @api.route('/users/<id>', methods=['GET'])

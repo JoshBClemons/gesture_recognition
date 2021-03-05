@@ -70,3 +70,17 @@ def build_and_save_model(x_train_paths, y_train, model_dir):
     model_path = os.path.join(model_dir, model_name)
     model.save(model_path)
     print(f'[INFO] New model saved at {model_path}')
+
+
+    # models table features
+    # training_day
+    # rank = -1 --> evaluator file reranks files based on current performance
+    # prev_rank = -1 --> evaluator file reranks based on current performance and stores prev_rank if rank was != -1
+    # model = blob(model)
+
+# gestures_map = {0: 'open palm',
+#                 1: 'closed palm',
+#                 2: 'L',
+#                 3: 'fist',
+#                 4: 'thumbs up',
+#                 }

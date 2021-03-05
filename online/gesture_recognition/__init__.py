@@ -1,13 +1,11 @@
 import pdb
 import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 # from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
 # from celery import Celery
-
 from config import config
 
 # Flask extensions
@@ -53,19 +51,27 @@ def create_app(config_name=None, main=True):
     else: 
         print(f'[INFO] Directory for processed images already exists at {processed_dir}.')
 
-    # grab and save current model locally
+    # grab and save current model and gestures_map locally
     import psycopg2
     import psycopg2.extras
+    import json
     conn = psycopg2.connect(host=config[config_name].DB_HOST, database=config[config_name].DB_NAME, user=config[config_name].DB_USER, password=config[config_name].DB_PASS)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    query = "SELECT * FROM models"
+    query = "SELECT model, gestures_map FROM models WHERE rank = 1;"
     cur.execute(query)
     conn.commit()
-    model = cur.fetchone()
+    data = cur.fetchone()
+    model = data[0]
+    gestures_map = data[1]
     cur.close()
 
-    open(config[config_name].MODEL_PATH, 'wb').write(model[1])
+    # save files
+    write_model = open(config[config_name].MODEL_PATH, 'wb')
+    write_model.write(model)
+    write_model.close()
+    with open(config[config_name].GESTURES_MAP_PATH, 'w') as fp:
+        json.dump(gestures_map, fp)
 
     # Import Socket.IO events so that they are registered with Flask-SocketIO
     from . import events  

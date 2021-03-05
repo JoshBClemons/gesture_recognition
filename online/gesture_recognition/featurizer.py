@@ -1,56 +1,93 @@
-from os.path import join, dirname, realpath
-import json
+from os.path import join
 import numpy as np
 import cv2
-import time
 import pdb
-import tensorflow as tf
-import math
 import os
 
 # define background parameters
 history = 0
 bgSubThreshold = 50
 learningRate = 0    # applying learning rate partially solves problem of poor background detection
-bgModel = 0
 
-# reduce resolution for image processing
-split = 5
-resize_dims = [1280, 720]
+# user initialized with no background (bgModel = 0)
+# on background, call function that generates and returns background
+# store background in database
+# on reset, set background = 0
+# call process with frame_orig, background model 
+def set_background(frame):
+    bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold)
+    return bgModel
 
-def remove_background(frame):    
-    global learningRate, bgModel
+def remove_background(frame, bgModel):    
+    global learningRate
     fgmask = bgModel.apply(frame, learningRate=learningRate)
     kernel = np.ones((3, 3), np.uint8)
     fgmask = cv2.erode(fgmask, kernel, iterations=1)
     res = cv2.bitwise_and(frame, frame, mask=fgmask)
     return res
 
-def process(frame, set_background=False, reset=False):
-    global bgModel 
-    if reset == True:
-        frame_processed = frame[0::split, 0::split]
-        bgModel = 0
-    elif set_background == True:
-        bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold) # may have to add cv2.cvtColor(np.array(image_object), cv2.COLOR_RGB2BGR) if cv2 relies on existing cv2 instance
-        frame_processed = frame[0::split, 0::split]
-    elif set_background == False and bgModel != 0:
-        try:
-            frame_nobg = remove_background(frame)
-        except:
-            raise Exception('Cannot locate video file')
-        # reduce image resolution
-        frame_nobg = frame_nobg[0::split, 0::split]
+def process(frame, bgModel):
+    if bgModel != 0:
+        frame_nobg = remove_background(frame, bgModel)
+        # resize image
+        frame_nobg = cv2.resize(frame_nobg, dsize=(256,144), interpolation=cv2.INTER_LINEAR)
         # turn non-black pixels white
         frame_processed = np.zeros(frame_nobg.shape, dtype=np.uint8)
         frame_processed[frame_nobg>0] = 255  
-    elif set_background == False and bgModel == 0:
-        frame_processed = frame[0::split, 0::split]
+    else:
+        frame_processed = cv2.resize(frame, dsize=(256,144), interpolation=cv2.INTER_LINEAR)
     # convert the image into binary image to reduce file size
     frame_processed = cv2.cvtColor(frame_processed, cv2.COLOR_BGR2GRAY)
-    return frame_processed
+    # Expand dimensions since the model expects images to have shape: [1, 144, 256, 3]
+    frame_prediction = frame_processed.astype(np.float)
+    frame_prediction = np.stack((frame_prediction,)*3, axis=-1) # without comma, (X_data) is np.array not tuple
+    frame_prediction /= 255
+    frame_prediction = np.expand_dims(frame_prediction, axis=0)
+    return [frame_processed, frame_prediction]
+
+
+
+# def process(frame, set_background=False, reset=False):
+#     global bgModel 
+#     if reset == True:
+#         frame_processed = frame[0::split, 0::split]
+#         bgModel = 0
+#     elif set_background == True:
+#         bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold)
+#         frame_processed = frame[0::split, 0::split]
+#     elif set_background == False and bgModel != 0:
+#         try:
+#             frame_nobg = remove_background(frame)
+#         except:
+#             raise Exception('Cannot locate video file')
+#         # reduce image resolution
+#         frame_nobg = frame_nobg[0::split, 0::split]
+#         # turn non-black pixels white
+#         frame_processed = np.zeros(frame_nobg.shape, dtype=np.uint8)
+#         frame_processed[frame_nobg>0] = 255  
+#     elif set_background == False and bgModel == 0:
+#         frame_processed = frame[0::split, 0::split]
+#     # convert the image into binary image to reduce file size
+#     frame_processed = cv2.cvtColor(frame_processed, cv2.COLOR_BGR2GRAY)
+#     return frame_processed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def rotate(frame, df_row, df_feats):
+    import tensorflow as tf
     instance = df_row[df_feats[0]]
     user_id = int(df_row[df_feats[1]])
     root_dir = df_row[df_feats[2]]
@@ -67,7 +104,6 @@ def rotate(frame, df_row, df_feats):
 
     # mirror image 
     from keras.preprocessing.image import ImageDataGenerator
-    import time
     datagen = ImageDataGenerator(horizontal_flip=True)
     frame_ext = frame.reshape((1,) + frame.shape) 
     for frame_mirrored in datagen.flow(frame_ext, batch_size=1):

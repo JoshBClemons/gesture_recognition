@@ -1,7 +1,6 @@
 import pdb
 from flask import g, jsonify, session
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
-
 from . import db
 from .models import User
 
@@ -14,7 +13,7 @@ token_optional_auth = HTTPTokenAuth('Bearer')
 @basic_auth.verify_password
 def verify_password(username, password): # nickname, password
     """Password verification callback."""
-    if not username or not password:
+    if not username or not password or username == "''" or password == "''":
         return False
     user = User.query.filter_by(username=username).first()
     if user is None: # if not a user, create the user 
@@ -33,7 +32,6 @@ def verify_password(username, password): # nickname, password
 @basic_auth.error_handler
 def password_error(user):
     """Return a 401 error to the client."""
-#     pdb.set_trace()
     # To avoid login prompts in the browser, use the "Bearer" realm.
     return (jsonify({'error': 'authentication required'}), 401,
             {'WWW-Authenticate': 'Bearer realm="Authentication Required"'})

@@ -62,21 +62,12 @@ class User(db.Model):
             except KeyError:
                 print(f'Key {key} not valid.')
 
-    # def to_dict(self):
-    #     """Export user to a dictionary."""
-    #     return {
-    #         'id': self.id,
-    #         'created_at': self.created_at,
-    #         'updated_at': self.updated_at,
-    #         'nickname': self.nickname,
-    #         'last_seen_at': self.last_seen_at,
-    #         'online': self.online,
-    #         '_links': {
-    #             'self': url_for('api.get_user', id=self.id),
-    #             'messages': url_for('api.get_messages', user_id=self.id),
-    #             'tokens': url_for('api.new_token')
-    #         }
-    #     }
+    def to_dict(self):
+        """Export user to a dictionary."""
+        return {
+            'username': self.username,
+            'online': self.online,
+        }
 
     @staticmethod
     def find_offline_users():

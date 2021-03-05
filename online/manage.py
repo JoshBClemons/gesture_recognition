@@ -2,12 +2,9 @@
 import os
 import subprocess
 import sys
-
 import eventlet
 eventlet.monkey_patch()
-
 from flask_script import Manager, Command, Server as _Server, Option
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Numeric, Date
 from gesture_recognition import create_app, db, socketio#, engine
 
 manager = Manager(create_app)

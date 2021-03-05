@@ -3,10 +3,7 @@
 # TO DO
 
 ## ONLINE
-# modify loging process
-    # onload, get list of all users
-    # if entered username not included, place POST request to create new user with password. reject if no password.
-    # if entered username is included, send to /token endpoint to return user's token 
+# on start, search for image directories, users and frames db and raise error if not yet initiated 
 # develop unit tests
 
 ## OFFLINE
@@ -26,7 +23,6 @@
 # ? test using Swagger
 # reduce text on website. add link to more information
     # include instructions and basic contact info 
-# modify to reset when new user logs in 
 
 ## MAYBE
 # don't process image entries if user opts out of saving images (no paths exist)
@@ -36,18 +32,9 @@
 
 import pdb
 from .models import Frame, User
-# from .events import push_model # needed to look for users that disconnect 
 from . import db, image_directory#, stats
-from . import featurizer
-from . import predictor
-from .auth import verify_token
-from flask import Blueprint, request, Response, g, session, current_app #, jsonify
-from PIL import Image
-import numpy as np
-import cv2
-import base64
+from flask import Blueprint, Response, current_app #, jsonify
 import os
-import datetime
 import threading
 import time
 
