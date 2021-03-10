@@ -18,19 +18,36 @@ class Server(_Server):
             Option('-h', '--host',
                    dest='host',
                    default=self.host),
-
             Option('-p', '--port',
                    dest='port',
                    type=int,
                    default=self.port),
+            Option('-o', '--online',
+                   action='store_true',
+                   dest='online',
+                   help='run application in SSL context',
+                   default=False),
         )
         return options
 
-    def __call__(self, app, host, port):
-        socketio.run(app,
-                    host=host,
-                    port=port,
-        )
+    def __call__(self, app, host, port, online):
+        if online:
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            certfile = os.path.join(basedir,'cert.pem')
+            keyfile = os.path.join(basedir,'key.pem')
+            socketio.run(
+                app,
+                host=host,
+                port=port,
+                keyfile=keyfile,
+                certfile=certfile,
+            )
+        else:
+            socketio.run(
+                app,
+                host=host,
+                port=port,
+            )
 manager.add_command("runserver", Server())
 
 @manager.command
