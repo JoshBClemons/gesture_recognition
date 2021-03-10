@@ -6,9 +6,9 @@ Project inspired by Brenner Heintz's "Training a Neural Network to Detect Gestur
 I heavily referenced Miguel Grinberg's "flack" repository code and architecture while developing this application [3].
 
 Sources
-[1] Main article: https://towardsdatascience.com/training-a-neural-network-to-detect-gestures-with-opencv-in-python-e09b0a12bdf1. GitHub: https://github.com/athena15/project_kojak
-[2] Main article: https://webrtchacks.com/webrtc-cv-tensorflow/. GitHub: https://github.com/webrtcHacks/tfObjWebrtc
-[3] GitHub: https://github.com/miguelgrinberg/flack/blob/master/README.md
+1. Main article: https://towardsdatascience.com/training-a-neural-network-to-detect-gestures-with-opencv-in-python-e09b0a12bdf1. GitHub: https://github.com/athena15/project_kojak
+2. Main article: https://webrtchacks.com/webrtc-cv-tensorflow/. GitHub: https://github.com/webrtcHacks/tfObjWebrtc
+3. GitHub: https://github.com/miguelgrinberg/flack/blob/master/README.md
 
 ## Installation
 
