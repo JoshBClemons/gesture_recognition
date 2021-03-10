@@ -1,8 +1,7 @@
 const apiServer = window.location.origin;
 
-title = document.getElementById('title');
-title.innerHTML='Hand Gesture Classifier Statistics. Last updated XX.';
-title.style.left = (window.innerWidth-title.getBoundingClientRect().width)/2 + "px";
+var title = document.getElementById('title');
+title.style.textAlign = 'center'
 
 m0cr = document.getElementById("m0cr");
 m0cm = document.getElementById("m0cm");
@@ -43,12 +42,15 @@ var socket = io.connect(location.protocol + '//' + location.hostname + ':' + loc
         request_stats(); 
     }, 5000)  
 })()
-socket.on('stats', function(output) { 
-    // keys = Object.keys(output)
-    // position classification reports and confusion matrices on left side of screen
+socket.on('stats', function(output) {
+    title.innerHTML='Hand Gesture Model and User Statistics<br>' + output.message
+    title.style.left = (window.innerWidth-title.getBoundingClientRect().width)/2 + "px";
+    
     var cr_figs = output['cr_figs']
     var cm_figs = output['cm_figs']
     var other_figs = output['other_figs']
+    
+    // position classification reports and confusion matrices on left side of screen
     m0cr.src = imgsrc_base + output[cr_figs[0]];
     m0cr.onload = function () {
         cr_height = m0cr.getBoundingClientRect().height;

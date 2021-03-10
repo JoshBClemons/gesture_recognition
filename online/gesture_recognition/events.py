@@ -1,6 +1,6 @@
 import pdb
 from .models import Frame, User
-from . import db, image_directory, socketio #,celery
+from . import db, socketio #,celery
 from . import featurizer
 from . import predictor
 from .auth import verify_token
@@ -21,14 +21,18 @@ def stats():
     fig_dict = {}
     for root, dirs, files in os.walk(fig_dir):
         for fig_file in files:
-            fig_path = os.path.join(fig_dir, fig_file)
-            fig_object = Image.open(fig_path)
-            fig = cv2.cvtColor(np.array(fig_object), cv2.COLOR_RGB2BGR)
-            output_bin = cv2.imencode('.jpg', fig)[1].tobytes()
-            encoded_output = base64.b64encode(output_bin).decode()
-            # add file to dictionary
-            fig_name = fig_file[:-4] # remove ".png"
-            fig_dict[fig_name] = encoded_output
+            if fig_file[-4:] == '.txt': 
+                message = open(Config.STATS_MESSAGE_PATH,"r+")
+                fig_dict['message'] = message.read()  
+            else:
+                fig_path = os.path.join(fig_dir, fig_file)
+                fig_object = Image.open(fig_path)
+                fig = cv2.cvtColor(np.array(fig_object), cv2.COLOR_RGB2BGR)
+                output_bin = cv2.imencode('.jpg', fig)[1].tobytes()
+                encoded_output = base64.b64encode(output_bin).decode()
+                # add file to dictionary
+                fig_name = fig_file[:-4] # remove ".png"
+                fig_dict[fig_name] = encoded_output
     fig_dict['cr_figs'] = Config.CR_FIGURE_NAMES
     fig_dict['cm_figs'] = Config.CM_FIGURE_NAMES
     fig_dict['other_figs'] = Config.OTHER_FIGURE_NAMES
@@ -108,7 +112,7 @@ def image(data):
         output_dict['command'] = user_command
 
         # save original and processed images in directory correponding to user
-        root_dir = image_directory
+        root_dir = Config.IMAGE_DIRECTORY
         image_path = instance + '.jpg'
 
         # save original images

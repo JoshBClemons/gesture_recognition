@@ -23,41 +23,10 @@ from . import models
 # Import celery task so that it is registered with the Celery workers
 # from .tasks import run_flask_request  # noqa
 
-image_directory = ''
+# image_directory = ''
 def create_app(config_name=None, main=True):
     if config_name is None:
         config_name = os.environ.get('FLACK_CONFIG', 'development')
-    
-    # create image directories
-    global image_directory
-    image_directory = config[config_name].IMAGE_DIRECTORY
-    if os.path.isdir(image_directory) == False:
-        os.mkdir(image_directory)
-        print(f'[INFO] Created file storage system at {image_directory}.')
-    else: 
-        print(f'[INFO] File storage system already exists at {image_directory}.')
-    
-    orig_dir = os.path.join(image_directory, 'original')
-    if os.path.isdir(orig_dir) == False:
-        os.mkdir(orig_dir)
-        print(f'[INFO] Created directory for original images at {orig_dir}.')
-    else: 
-        print(f'[INFO] Directory for original images already exists at {orig_dir}.')
-    
-    processed_dir = os.path.join(image_directory, 'processed')
-    if os.path.isdir(processed_dir) == False:
-        os.mkdir(processed_dir)
-        print(f'[INFO] Created directory for processed images at {processed_dir}.')
-    else: 
-        print(f'[INFO] Directory for processed images already exists at {processed_dir}.')
-    
-    # create figure directory
-    fig_dir = config[config_name].FIGURE_DIRECTORY
-    if os.path.isdir(fig_dir) == False:
-        os.mkdir(fig_dir)
-        print(f'[INFO] Created figure directory at {fig_dir}.')
-    else: 
-        print(f'[INFO] Figure directory already exists at {fig_dir}.')
     
     # grab and save model and gestures_map of highest ranking model
     import psycopg2

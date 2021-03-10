@@ -23,7 +23,7 @@
 
 import pdb
 from .models import Frame, User
-from . import db, image_directory#, stats
+from . import db#, stats
 from flask import Blueprint, Response, current_app #, jsonify
 import os
 import threading
@@ -46,8 +46,9 @@ def before_first_request():
     def update_monitoring():
         while True:
             monitoring.update_figures()
-            sleep_mins = 60
-            time.sleep(sleep_mins*60)
+            time.sleep(5)
+#             sleep_mins = 60
+#             time.sleep(sleep_mins*60)
     if not current_app.config['TESTING']:
         t1 = threading.Thread(target=find_offline_users, args=(current_app._get_current_object(),))
         t2 = threading.Thread(target=update_monitoring)
