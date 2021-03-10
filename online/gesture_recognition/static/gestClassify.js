@@ -16,9 +16,7 @@ let imageCanvas = document.createElement('canvas');
 let imageCtx = imageCanvas.getContext("2d");
 
 var prev_size = 0;
-// var socket = io()
 var socket = io.connect(location.protocol + '//' + location.hostname + ':' + location.port);
-// debugger
 function postFile(file) {
     if (file.size != prev_size && send_key != 'p' && typeof(token) != 'undefined') {
         prev_size = file.size;
@@ -32,6 +30,7 @@ function postFile(file) {
 }
 socket.on('test', function(output) { 
     imgsrc = 'data:image/jpeg;base64,' + output.train_image;
+    debugger
     label = output.label;
     if (output.command != '') {
         send_key = ''

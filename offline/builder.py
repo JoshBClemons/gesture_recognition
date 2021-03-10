@@ -11,6 +11,7 @@ import cv2
 import time
 
 def create_model(height, width, num_categories):
+    # Fetch base VGG16 model 
     base_model = VGG16(weights='imagenet', include_top=False, input_shape=(height, width, 3)) # topless model
 
     # Add top
@@ -29,7 +30,7 @@ def create_model(height, width, num_categories):
         layer.trainable = False
     return model
 
-def build_and_save_model(x_train_paths, y_train, model_dir):
+def build_and_save_model(x_train_paths, y_train, gestures_map, model_dir):
     # define callback functions
     model_checkpoint = ModelCheckpoint(filepath=model_dir, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_accuracy',
@@ -64,23 +65,13 @@ def build_and_save_model(x_train_paths, y_train, model_dir):
     print(f'[INFO] Model training took {time.time() - start_time} seconds')
 
     # save model
-    now = datetime.datetime.now()
-    date = now.strftime("%Y-%m-%d_T%H_%M")
-    model_name = date + '_VGG_model.h5'
+    training_date = datetime.datetime.now()
+    date = training_date.strftime("%Y-%m-%d_T%H_%M")
+    model_name = date + '.h5'
     model_path = os.path.join(model_dir, model_name)
     model.save(model_path)
-    print(f'[INFO] New model saved at {model_path}')
 
+    print(f'[INFO] Model built. New model saved at {model_path}')
 
-    # models table features
-    # training_day
-    # rank = -1 --> evaluator file reranks files based on current performance
-    # prev_rank = -1 --> evaluator file reranks based on current performance and stores prev_rank if rank was != -1
-    # model = blob(model)
-
-# gestures_map = {0: 'open palm',
-#                 1: 'closed palm',
-#                 2: 'L',
-#                 3: 'fist',
-#                 4: 'thumbs up',
-#                 }
+    # return data necessary to push model to database
+    return [model_path, training_date]

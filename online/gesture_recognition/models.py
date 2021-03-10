@@ -18,7 +18,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     token = db.Column(db.String(64), nullable=True, unique=True)
     online = db.Column(db.Boolean, default=False)
-    num_logins = db.Column(db.Integer, default=0)
+    num_logins = db.Column(db.Integer, default=1)
     frames = db.relationship('Frame', lazy='dynamic', backref='user')
 
     @property
@@ -82,7 +82,7 @@ class User(db.Model):
 class Frame(db.Model):
     __tablename__ = 'frames'
     instance = db.Column(db.String(), primary_key=True, nullable=False)
-    date = db.Column(db.Date(), nullable=False)
+    date = db.Column(db.DateTime(), nullable=False)
     session_id = db.Column(db.Integer(), nullable=False)
     frame_count = db.Column(db.Integer(), nullable=False)
     ip_address = db.Column(db.String())

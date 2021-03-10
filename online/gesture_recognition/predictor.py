@@ -18,6 +18,10 @@ def predict_gesture(frame, true_gest, session):
         label = "No gesture predicted. Please input gesture."
         pred_gest = 'NA'
         pred_conf = pred_time = 0
+    elif true_gest in list(gestures_map.values()) and session['start_countdown'] == True and session['pause_count'] < 2:
+        label = "Saving background. One moment please."
+        pred_gest = 'NA'
+        pred_conf = pred_time = 0
     elif session['pause_count'] >= 2:
         start_time = time.time()
         pred = model.predict(frame)

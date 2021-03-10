@@ -50,15 +50,26 @@ def create_app(config_name=None, main=True):
         print(f'[INFO] Created directory for processed images at {processed_dir}.')
     else: 
         print(f'[INFO] Directory for processed images already exists at {processed_dir}.')
-
-    # grab and save current model and gestures_map locally
+    
+    # create figure directory
+    fig_dir = config[config_name].FIGURE_DIRECTORY
+    if os.path.isdir(fig_dir) == False:
+        os.mkdir(fig_dir)
+        print(f'[INFO] Created figure directory at {fig_dir}.')
+    else: 
+        print(f'[INFO] Figure directory already exists at {fig_dir}.')
+    
+    # grab and save model and gestures_map of highest ranking model
     import psycopg2
     import psycopg2.extras
     import json
     conn = psycopg2.connect(host=config[config_name].DB_HOST, database=config[config_name].DB_NAME, user=config[config_name].DB_USER, password=config[config_name].DB_PASS)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    query = "SELECT model, gestures_map FROM models WHERE rank = 1;"
+    query = "SELECT model_name FROM model_scores WHERE rank = 1;"
+    cur.execute(query)
+    conn.commit()
+    model_name = cur.fetchone()[0]
+    query = f"SELECT model, gestures_map FROM models WHERE model_name = '{model_name}'"
     cur.execute(query)
     conn.commit()
     data = cur.fetchone()

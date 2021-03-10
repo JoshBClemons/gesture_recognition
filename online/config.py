@@ -9,7 +9,7 @@ class Config(object):
     DB_NAME = 'postgres'
     DEBUG = False
     TESTING = False
-    IMAGE_DIRECTORY = os.path.join(os.path.dirname( __file__ ), os.pardir, 'gesture_recognition_images')
+    IMAGE_DIRECTORY = os.path.join(basedir, os.pardir, 'gesture_recognition_images')
     MODEL_PATH = os.path.join(basedir, 'gesture_recognition\\current_model.h5')
     GESTURES_MAP_PATH = os.path.join(basedir, 'gesture_recognition\\gestures_map.json')
     # SECRET_KEY = os.environ.get('SECRET_KEY', '51f52814-0071-11e6-a247-000ec6c2372c')
@@ -19,6 +19,24 @@ class Config(object):
     # CELERY_CONFIG = {}
     # SOCKETIO_MESSAGE_QUEUE = os.environ.get('SOCKETIO_MESSAGE_QUEUE', os.environ.get('CELERY_BROKER_URL', 'redis://'))
 
+    # figure information
+    FIGURE_DIRECTORY = os.path.join(basedir, 'gesture_recognition\\figures')
+    CR_FIGURE_NAMES = (
+        "top_classification_report", 
+        "middle_classification_report", 
+        "bottom_classification_report", 
+    )
+    CM_FIGURE_NAMES = (
+        "top_confusion_matrix", 
+        "middle_confusion_matrix", 
+        "bottom_confusion_matrix",
+    )
+    OTHER_FIGURE_NAMES = (
+        "todays_user_activity", 
+        "gesture_prediction_accuracy_by_date", 
+        "total_user_usage_time_by_date", 
+        "true_gesture_counts_by_date", 
+    )
 
 class DevelopmentConfig(Config):
     DEBUG = True

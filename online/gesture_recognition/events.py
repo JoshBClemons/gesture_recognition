@@ -12,36 +12,30 @@ import cv2
 import base64
 import os
 import datetime
+from config import Config
 
-def emit_error(error_message):
-    emit('error', error_message)
+@socketio.on('request_stats')
+def stats():
+    # get most recent figures
+    fig_dir = Config.FIGURE_DIRECTORY
+    fig_dict = {}
+    for root, dirs, files in os.walk(fig_dir):
+        for fig_file in files:
+            fig_path = os.path.join(fig_dir, fig_file)
+            fig_object = Image.open(fig_path)
+            fig = cv2.cvtColor(np.array(fig_object), cv2.COLOR_RGB2BGR)
+            output_bin = cv2.imencode('.jpg', fig)[1].tobytes()
+            encoded_output = base64.b64encode(output_bin).decode()
+            # add file to dictionary
+            fig_name = fig_file[:-4] # remove ".png"
+            fig_dict[fig_name] = encoded_output
+    fig_dict['cr_figs'] = Config.CR_FIGURE_NAMES
+    fig_dict['cm_figs'] = Config.CM_FIGURE_NAMES
+    fig_dict['other_figs'] = Config.OTHER_FIGURE_NAMES
+    emit('stats', fig_dict)
 
 @socketio.on('post_image')
 def image(data): 
-    # verify client emission contains all necessary data with proper data attributes  
-    if data == None:
-        error_message = 'No data sent.'
-        emit_error(error_message)
-    data_elements = ['image', 'token', 'command', 'gesture']
-    for element in data_elements: 
-        if element not in data.keys():
-            error_message = 'Data missing image, token, command, and/ or gesture.'
-            emit_error(error_message)
-            break
-    
-    # get webcam image
-    image_file = 'temp_file'
-    try:
-        with open('temp_file', 'wb') as file_handler: file_handler.write(data['image'])
-        image_object = Image.open(image_file)
-    except:
-        error_message = "'Image' component of data must be image datatype."
-        emit_error(error_message)
-    frame_orig = cv2.cvtColor(np.array(image_object), cv2.COLOR_RGB2BGR)
-    if len(frame_orig.shape) != 3 or frame_orig.shape[2] != 3:
-        error_message = "'Image' component of data must have (height, width, 3) shape."
-        emit_error(error_message)
-
     # get user token corresponds to 
     token = data['token']    
     verify_token(token, add_to_session=True)
@@ -72,6 +66,13 @@ def image(data):
         date = now.strftime("%Y-%m-%d %H:%M:%S") 
         ip_address = request.remote_addr
         
+        # get webcam image
+        image_file = 'temp_file'
+        with open(image_file, 'wb') as file_handler: 
+            file_handler.write(data['image'])
+        image_object = Image.open(image_file)
+        frame_orig = cv2.cvtColor(np.array(image_object), cv2.COLOR_RGB2BGR)
+
         # process image
         user_command = data['command']
         if user_command != 'r' and user_command != 'b':
@@ -81,7 +82,6 @@ def image(data):
                     error_message = "Frame must have same dimensions as background image."
                     emit_error(error_message)
             [frame_processed, frame_prediction] = featurizer.process(frame_orig, session['background'])
-
         elif user_command == 'b':
             [frame_processed, frame_prediction] = featurizer.process(frame_orig, session['background'])
             bgModel = featurizer.set_background(frame_orig)
@@ -163,12 +163,12 @@ def on_disconnect():
     """ 
     username = session.get('username')
     if username:
-        # we have the nickname in the session, we can mark the user as offline
+        # we have the username in the session, we can mark the user as offline
         user = User.query.filter_by(username=username).first()
         if user:
             user.online = False
             db.session.commit()
-
+    
 #@celery.task
 # def post_message(user_id, data):
 #     """Celery task that posts a message."""

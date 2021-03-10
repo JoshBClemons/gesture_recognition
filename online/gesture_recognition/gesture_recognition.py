@@ -1,21 +1,7 @@
 #!/usr/bin/env python
 
-# TO DO
-
-## ONLINE
-# on start, search for image directories, users and frames db and raise error if not yet initiated 
-# develop unit tests
-
-## OFFLINE
-# modify motion_identification to render high-level basics (run first page, run /stats/)
-# create simple rendering for monitoring page (use sketch to design monitoring dashboard)
-# verify monitoring works while application runs with single user  
-# enable timing between systems --> sleep 
-    # setup model builder to run once a day
-    # setup evaluator to compare models once a day 
-# ? setup using flask/gunicorn/nginx
-
 ## DEPLOYMENT
+# ? setup using flask/gunicorn/nginx
 # replicate model on AWS using EC2
 # login from multiple users and see how poorly latency is impacted. see if improvement with celery
 # deploy using SageMaker, Data Lake, etc. 
@@ -23,12 +9,17 @@
 # ? test using Swagger
 # reduce text on website. add link to more information
     # include instructions and basic contact info 
+# enable timing between systems --> sleep 
+    # setup model builder to run once a day
+    # setup evaluator to compare models once a day 
 
-## MAYBE
+## minor
+# upload original images to database 
+# add gesture reset option to gestClassify
 # don't process image entries if user opts out of saving images (no paths exist)
+# add classification of new option: none of the above. feed model entries when true_gest != pred_gest 
 # replace print statements with logging
 # implement airflow
-
 
 import pdb
 from .models import Frame, User
@@ -37,32 +28,37 @@ from flask import Blueprint, Response, current_app #, jsonify
 import os
 import threading
 import time
+from . import monitoring
+from . import events
 
 main = Blueprint('main', __name__)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 @main.before_app_first_request
 def before_first_request():
-    """Start a background thread that looks for users that leave."""
+    """Start background threads that looks for users that leave and refresh monitoring page."""
     def find_offline_users(app):
         with app.app_context():
             while True:
                 users = User.find_offline_users()
                 db.session.remove() 
                 time.sleep(5)
+    def update_monitoring():
+        while True:
+            monitoring.update_figures()
+            sleep_mins = 60
+            time.sleep(sleep_mins*60)
     if not current_app.config['TESTING']:
-        thread = threading.Thread(target=find_offline_users,
-                                  args=(current_app._get_current_object(),))
-        thread.start()
+        t1 = threading.Thread(target=find_offline_users, args=(current_app._get_current_object(),))
+        t2 = threading.Thread(target=update_monitoring)
+        t1.start()
+        t2.start()
 
-# @main.before_app_request
-# def before_request():
-#     """Update requests per second stats."""
-#     stats.add_request()
-
-# @main.route('/stats', methods=['GET'])
-# def get_stats():
-#     return jsonify({'requests_per_second': stats.requests_per_second()})
+@main.route('/stats', methods=['GET'])
+def get_stats():
+    global dir_path
+    path = os.path.join(dir_path,'static/stats.html')
+    return Response(open(path).read(), mimetype="text/html")
 
 @main.after_request
 def after_request(response):

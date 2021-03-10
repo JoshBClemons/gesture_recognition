@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Gesture Classifier Statistics</title>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <style>
+      body {font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", Arial, sans-serif;}
+      * {
+          overflow: hidden; 
+          margin: 0;
+          outline: 0;
+          padding: 0;
+      }
+      canvas, h1 {
+        position: absolute;
+      }
+      img {
+          visibility: hidden;
+      }
+      </style>
+  </head>
+  <body>
+    <h1 class="title" id="title"></h1>
+    <canvas id="model_stats"></canvas>
+    <canvas id="todays_user_act_stats"></canvas>
+    <canvas id="continuous_stats"></canvas>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <image id='m0cr' src="">
+    <image id='m1cr' src="">
+    <image id='m0cm' src=""> 
+    <image id='m1cm' src="">
+    <image id='m2cr' src="">
+    <image id='m2cm' src=""> 
+    <image id='todays_user_act' src="">   
+    <image id='pred_acc_date' src="">
+    <image id='user_usage' src="">
+    <image id='gest_counts' src="">    
+    <script src="/static/stats.js"></script>     
+    <!-- <script>onmousemove = function(e){console.log("mouse location:", e.clientX, e.clientY)}</script> -->
+  </body>
+</html>

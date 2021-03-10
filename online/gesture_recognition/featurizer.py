@@ -45,47 +45,6 @@ def process(frame, bgModel):
     frame_prediction = np.expand_dims(frame_prediction, axis=0)
     return [frame_processed, frame_prediction]
 
-
-
-# def process(frame, set_background=False, reset=False):
-#     global bgModel 
-#     if reset == True:
-#         frame_processed = frame[0::split, 0::split]
-#         bgModel = 0
-#     elif set_background == True:
-#         bgModel = cv2.createBackgroundSubtractorMOG2(history, bgSubThreshold)
-#         frame_processed = frame[0::split, 0::split]
-#     elif set_background == False and bgModel != 0:
-#         try:
-#             frame_nobg = remove_background(frame)
-#         except:
-#             raise Exception('Cannot locate video file')
-#         # reduce image resolution
-#         frame_nobg = frame_nobg[0::split, 0::split]
-#         # turn non-black pixels white
-#         frame_processed = np.zeros(frame_nobg.shape, dtype=np.uint8)
-#         frame_processed[frame_nobg>0] = 255  
-#     elif set_background == False and bgModel == 0:
-#         frame_processed = frame[0::split, 0::split]
-#     # convert the image into binary image to reduce file size
-#     frame_processed = cv2.cvtColor(frame_processed, cv2.COLOR_BGR2GRAY)
-#     return frame_processed
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def rotate(frame, df_row, df_feats):
     import tensorflow as tf
     instance = df_row[df_feats[0]]
