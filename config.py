@@ -3,10 +3,10 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
-    DB_HOST = 'localhost' #'localhost' to run locally without Docker; 'database' to run in local docker container connected to Windows postgreSQL using command docker run --add-host=database:172.23.144.1 -p 5000:443 IMAGE; 'database-1.ctr90dqhgegw.us-east-2.rds.amazonaws.com' to run on Amazon RDS
+    DB_HOST = 'localhost'
     DB_USER = 'postgres'
     DB_PASS = 'temporary_password'
-    DB_NAME = 'testing' # 'postgres' for Amazon RDS
+    DB_NAME = 'testing'
     DEBUG = False
     TESTING = False
     IMAGE_DIRECTORY = os.path.join(basedir, 'images')
