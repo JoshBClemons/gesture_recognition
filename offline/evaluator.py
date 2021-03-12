@@ -9,7 +9,9 @@ import datetime
 import time
 
 def evaluate_model(model_path, x_val_paths, y_val):
+    """Evaluate model performance. Return F1-score, evaluation date, evaluation time, predicted values, and true values."""
     start_time = time.time()
+
     # get frames from validation data paths 
     x_val = []
     for path in x_val_paths:
@@ -29,4 +31,5 @@ def evaluate_model(model_path, x_val_paths, y_val):
     now = datetime.datetime.now()
     eval_date = now.strftime("%Y-%m-%d %H:%M:%S") 
     eval_time = time.time() - start_time
+
     return [f1, eval_date, eval_time, y_true, y_pred]

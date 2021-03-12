@@ -4,8 +4,7 @@ import os
 from flask import g
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
-from .utils import timestamp#, url_for
-
+from .utils import timestamp
 
 class User(db.Model):
     """The User model."""
@@ -79,7 +78,9 @@ class User(db.Model):
         db.session.commit()
         return users
 
+
 class Frame(db.Model):
+    """The Frames model."""
     __tablename__ = 'frames'
     instance = db.Column(db.String(), primary_key=True, nullable=False)
     date = db.Column(db.DateTime(), nullable=False)

@@ -1,4 +1,3 @@
-# define labels
 gestures_map = {0: 'open palm',
                 1: 'closed palm',
                 2: 'L',

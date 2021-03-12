@@ -13,15 +13,13 @@ import copy
 import datetime
 import math
 import json
-
 import warnings
 warnings.filterwarnings('ignore')
-
 import seaborn as sns
 sns.set_style("whitegrid")
 sns.set_context("poster")
 
-# list gestures
+# generate list of gestures
 with open(Config.GESTURES_MAP_PATH,'r') as f:
     gestures_map = json.load(f)
 gestures = list(gestures_map.values())
@@ -29,7 +27,8 @@ gestures = list(gestures_map.values())
 # define static file image directory to store figures
 figure_dir = Config.FIGURE_DIRECTORY
 
-def update_figures():
+def update_stats():
+    """Update usage and model statistics."""
     # gather data from model_scores and frames tables
     conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
     query = "SELECT * FROM model_scores" 
@@ -81,6 +80,7 @@ def update_figures():
                 gesture = gestures_with_time['true_gest'][i]
                 gesture_dict[gesture]['counts'][date_index] = gesture_counts
                 gesture_dict[gesture]['percentages'][date_index] = gesture_counts*100 / date_total_gestures[date_index]
+            
             # generate bar chart showing relative popularity of different gestures over time 
             fig, ax = plt.subplots(figsize=(6,8))
             width = 0.2
@@ -104,6 +104,7 @@ def update_figures():
             ax.set_ylabel('True Gesture Counts')
             ax.set_xlabel('Date')
             ax.set_title('True Gesture Counts by Date')
+            
             # define y_limits
             def roundup(x):
                 return int(math.ceil(x / 100.0)) * 100
@@ -114,6 +115,7 @@ def update_figures():
             ax.set_yticks(yticks)
             ax.tick_params(labelsize=15, labelrotation=0, grid_alpha=0.2, axis='both', which='major', direction='out', length=6, width=2, left=True, bottom=True)
             ax.legend(loc='upper right', fontsize=12)
+            
             # save true_gesture_counts_by_date file
             file_name = Config.OTHER_FIGURE_NAMES[3] + '.png'
             file_path = os.path.join(figure_dir, file_name)
@@ -123,7 +125,6 @@ def update_figures():
 
         ## evaluate - classification report and confusion matrix for each model
         # This informs of relative performance of top 3 models. Perhaps some are better at predicting certain gestures compared to others
-
         labels = list(gestures_map.values())
         for i in range(min(len(df_model_scores), 3)):
             y_true = eval(df_model_scores['true_gestures'][i].replace('{','[').replace('}',']'))
@@ -228,6 +229,7 @@ def update_figures():
         ax.set_ylabel('Combined User Usage Time (seconds)')
         ax.set_xlabel('Date')
         ax.set_title('Combined User Usage Time by Date')
+        
         # define y_limits
         def roundup(x):
             return int(math.ceil(x / 100.0)) * 100
@@ -245,9 +247,9 @@ def update_figures():
         plt.savefig(file_path, bbox_inches='tight')
         plt.close()
 
-
         ## evaluate - total daily user activity
         # It is always good to know which times of day most users are using the product to inform advertising strategy or future product development.
+        
         # generate df containing number of users during each minute
         df_users_per_minute = df_frames[['date', 'user_id']]
         df_users_per_minute = df_users_per_minute[df_users_per_minute['date'].dt.date == datetime.datetime.now().date()]
@@ -283,7 +285,6 @@ def update_figures():
         file_path = os.path.join(figure_dir, file_name)
         plt.savefig(file_path, bbox_inches='tight')
         plt.close()
-
 
         ## evaluate - daily prediction accuracy for each gesture
         # This informs us about which gestures are more difficult to predict than others. I significant change in gesture prediction accuracy may correlate with a change in which model is currently implemented.
@@ -343,8 +344,7 @@ def update_figures():
             # complete
             time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
             message = f'Activity statistics updated at {time}'
-            print('[INFO] ' + message)
-            
+            print('[INFO] ' + message)    
     else:
         message = f'No frames collected yet. No statistics to compute.'
         print('[INFO] ' + message)

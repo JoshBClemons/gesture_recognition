@@ -11,10 +11,11 @@ import cv2
 import time
 
 def create_model(height, width, num_categories):
+    """Create new VGG-16 model. Return model."""
     # Fetch base VGG16 model 
-    base_model = VGG16(weights='imagenet', include_top=False, input_shape=(height, width, 3)) # topless model
+    base_model = VGG16(weights='imagenet', include_top=False, input_shape=(height, width, 3))
 
-    # Add top
+    # Add top to model
     base = base_model.output
     flat = Flatten()(base)
     fc1 = Dense(128, activation='relu', name='fc1')(flat)
@@ -28,9 +29,11 @@ def create_model(height, width, num_categories):
     # Train top layers only
     for layer in base_model.layers:
         layer.trainable = False
+
     return model
 
 def build_and_save_model(x_train_paths, y_train, gestures_map, model_dir):
+    """Build and save new VGG-16 model using confident predictions from database. Return trained model path and training date."""
     # define callback functions
     model_checkpoint = ModelCheckpoint(filepath=model_dir, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_accuracy',
@@ -39,7 +42,7 @@ def build_and_save_model(x_train_paths, y_train, gestures_map, model_dir):
                                 verbose=1,
                                 mode='auto',
                                 restore_best_weights=True)
-
+                                
     # get images
     x_train = []
     for path in x_train_paths:
@@ -70,8 +73,6 @@ def build_and_save_model(x_train_paths, y_train, gestures_map, model_dir):
     model_name = date + '.h5'
     model_path = os.path.join(model_dir, model_name)
     model.save(model_path)
-
     print(f'[INFO] Model built. New model saved at {model_path}')
 
-    # return data necessary to push model to database
     return [model_path, training_date]

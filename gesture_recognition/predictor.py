@@ -3,17 +3,18 @@ from keras.models import load_model
 import json
 import numpy as np
 import time
-from config import config
+from config import Config
 import os
 
 # Import model
-config_name = os.environ.get('FLACK_CONFIG', 'development')
-model = load_model(config[config_name].MODEL_PATH)
+model = load_model(Config.MODEL_PATH)
 
-with open(config[config_name].GESTURES_MAP_PATH, 'r') as fp:
+# Import gesture map
+with open(Config.GESTURES_MAP_PATH, 'r') as fp:
     gestures_map = json.load(fp)
 
 def predict_gesture(frame, true_gest, session):
+    """Predict user gesture and return message for client, predicted gesture, prediction confidence, and prediction time."""
     if true_gest not in list(gestures_map.values()) and session['start_countdown'] == True:
         label = "No gesture predicted. Please input gesture."
         pred_gest = 'NA'
@@ -34,4 +35,5 @@ def predict_gesture(frame, true_gest, session):
         label = "No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions."
         pred_gest = 'NA'
         pred_conf = pred_time = 0
+        
     return [label, pred_gest, pred_conf, pred_time]

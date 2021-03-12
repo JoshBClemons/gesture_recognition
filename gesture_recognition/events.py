@@ -1,6 +1,6 @@
 import pdb
 from .models import Frame, User
-from . import db, socketio #,celery
+from . import db, socketio
 from . import featurizer
 from . import predictor
 from .auth import verify_token
@@ -17,7 +17,7 @@ import json
 
 @socketio.on('request_stats')
 def stats():
-    # get most recent figures
+    """Return latest model statistics and usage figures."""
     fig_dir = Config.FIGURE_DIRECTORY
     fig_dict = {}
     for root, dirs, files in os.walk(fig_dir):
@@ -44,7 +44,7 @@ def stats():
 
 @socketio.on('post_image')
 def process_image(data): 
-    # get user token corresponds to 
+    """Process user image and return prediction, prediction confidence, and prediction time. Also, add instance to database."""
     token = data['token']    
     verify_token(token, add_to_session=True)
     if g.current_user:
@@ -52,7 +52,7 @@ def process_image(data):
         user = User.query.get(user_id)
         if user is None:
             return
-        
+
         # initialize client session variables 
         session_keys = list(session.keys())
         if 'background' not in session_keys:
@@ -73,7 +73,7 @@ def process_image(data):
         now = datetime.datetime.now()
         date = now.strftime("%Y-%m-%d %H:%M:%S") 
         ip_address = request.remote_addr
-        
+
         # get webcam image
         image_file = 'temp_file'
         with open(image_file, 'wb') as file_handler: 
@@ -101,12 +101,12 @@ def process_image(data):
             session['background'] = 0 
             session['frame_dims'] = 0
             session['start_countdown'] = False
-            session['pause_count'] = 0        
+            session['pause_count'] = 0    
 
         # predict gesture
         true_gest = data['gesture']
         [label, pred_gest, pred_conf, pred_time] = predictor.predict_gesture(frame_prediction, true_gest, session)
-        
+
         # package results in dictionary
         output_bin = cv2.imencode('.jpg', frame_processed)[1].tobytes()
         encoded_output = base64.b64encode(output_bin).decode()
@@ -166,9 +166,7 @@ def process_image(data):
 
 @socketio.on('disconnect')
 def on_disconnect():
-    """A Socket.IO client has disconnected. If we know who the user is, then
-    update our state accordingly.
-    """ 
+    """A Socket.IO client has disconnected. If we know who the user is, then update their status to 'offline.'""" 
     username = session.get('username')
     if username:
         # we have the username in the session, we can mark the user as offline
@@ -176,38 +174,3 @@ def on_disconnect():
         if user:
             user.online = False
             db.session.commit()
-    
-#@celery.task
-# def post_message(user_id, data):
-#     """Celery task that posts a message."""
-#     from .wsgi_aux import app
-#     with app.app_context():
-#         user = User.query.get(user_id)
-#         if user is None:
-#             return
-
-#         # Write the message to the database
-#         msg = Message.create(data, user=user, expand_links=False)
-#         db.session.add(msg)
-#         db.session.commit()
-
-#         # broadcast the message to all clients
-#         push_model(msg)
-
-#         if msg.expand_links():
-#             db.session.commit()
-
-#             # broadcast the message again, now with links expanded
-#             push_model(msg)
-
-#         # clean up the database session
-#         db.session.remove()
-
-
-# @socketio.on('post_message')
-# def on_post_message(data, token):
-#     """Clients send this event to when the user posts a message."""
-#     pdb.set_trace()
-#     verify_token(token, add_to_session=True)
-#     if g.current_user:
-#         post_message.apply_async(args=(g.current_user.id, data))

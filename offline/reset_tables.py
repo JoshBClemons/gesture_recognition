@@ -6,6 +6,7 @@ import os
 import datetime
 
 def reset_tables():
+    """Reset offline tables. This is necessary when first running application."""
     # select all high-scoring predictions. These will be used to train new models. 
     conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
     cur = conn.cursor(cursor_factory=DictCursor)
@@ -46,6 +47,7 @@ def reset_tables():
     cur.execute(query)
     conn.commit()
 
+    # load original model to model_scores table is not empty when application attempts to get table from it
     from . import load_orig_model
     load_orig_model.load_orig_model()
 

@@ -4,12 +4,12 @@ from psycopg2.extras import Json, DictCursor
 import pdb
 import os
 import datetime
-
 conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
 cur = conn.cursor(cursor_factory=DictCursor)
 table = 'model_scores'
 
 def load_orig_model():
+    """Upload originally trained model and model performance metrics to database."""
     global table
     from sqlalchemy import create_engine
     import pandas as pd
@@ -27,6 +27,7 @@ def load_orig_model():
     sql_model_scores.to_sql(table, con=engine, if_exists='replace', index=False)
     engine.dispose()
     print(f'[INFO] Created and added original model score to table {table}')
+
     # add original model to "models" table
     from objects import gestures_map
     gestures_map = Json(gestures_map)
@@ -40,10 +41,12 @@ def load_orig_model():
     cur.execute(query)
     conn.commit()
     print(f'[INFO] Added original model to {table}')
+
     # close db connection
     cur.close()
 
 def check_orig_model():
+    """Check if there are any models in database. If there are not, upload original model to database."""
     global table
     try:
         # create table for model scores (temp fake values)

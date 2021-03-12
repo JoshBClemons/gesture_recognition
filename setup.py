@@ -1,6 +1,5 @@
 from setuptools import setup
 
-
 def readme():
     """Import the README.md Markdown file and try to convert it to RST format."""
     try:
