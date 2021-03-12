@@ -1,17 +1,15 @@
 FROM python:3.8.3-slim
 
-COPY ./offline/ /gesture_recognition/offline/
-COPY ./online/ /gesture_recognition/offline/
-COPY ./requirements.txt /gesture_recognition/
-COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf 
+COPY . .
 
-WORKDIR /gesture_recognition/
-
-RUN pip install -r requirements.txt
 RUN apt-get update
+# packages below necessary for AWS compatibility
 RUN apt-get install ffmpeg libsm6 libxext6  -y
-RUN apt-get install -y supervisor # Installing supervisord
+# packages below necessary to install psycopg2
+RUN apt-get update && apt-get install -y libpq-dev gcc
+RUN pip install -r requirements.txt --no-cache-dir
+RUN apt-get autoremove -y gcc
 
-EXPOSE 80 443
+EXPOSE 80 443 5432 3306
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+ENTRYPOINT ["python", "manage.py", "start", "-o", "-ro", "-rof"] 
