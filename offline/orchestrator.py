@@ -6,14 +6,10 @@ import pandas as pd
 import os
 import time
 import cv2
+from gesture_recognition import featurizer
 
 def orchestrator():
     """Pull confidence prediction instances from database and use them to generate new model."""
-    # import featurizer from online files
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("featurizer", Config.FEATURIZER_DIRECTORY)
-    featurizer = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(featurizer)
 
     # define database names
     db_frames = 'frames'
@@ -102,6 +98,15 @@ def orchestrator():
         df.to_sql(table, con=engine, if_exists='replace', index=False) # would be better to append existing table conf_preds but current design processes all images from database rather than just new ones. Will update in the future. 
         print(f'[INFO] Table of confident predictions updated.')
 
+        # check if sufficient number of each gesture present in table of confident predictions. If not, exit since a new model cannot be trained
+        from objects import gestures_map # may place gestures_map on database. stored models should be saved with gestures_map they correspond with. example: train new model with additional gestures 
+        gestures_list = list(gestures_map.values())
+        df_gestures_list = list(df['gesture'].unique())
+        differing_gestures = [gesture for gesture in gestures_list if gesture not in df_gestures_list]
+        if differing_gestures != []:
+            print(f'[ERROR] Not enough confident predictions have been made for {differing_gestures}. Unable to split data.')
+            return
+
         # generate new table with image paths transposed for convenient model training
         df_conf_preds = pd.DataFrame()
         for i in range(len(df)):
@@ -118,8 +123,6 @@ def orchestrator():
 
         # define x_data, y_data
         from keras.utils import to_categorical
-        from objects import gestures_map # may place gestures_map on database. stored models should be saved with gestures_map they correspond with. example: train new model with additional gestures 
-        pdb.set_trace()
         y_data = df_conf_preds['gesture']
         for cat in list(gestures_map.keys()):
             gesture_name = gestures_map[cat]
@@ -143,15 +146,19 @@ def orchestrator():
         x_data = df_conf_preds['path'].iloc[indices]
 
         # train-test split
+        test_size = 0.2
+        if len(x_data) < len(gestures_list)/test_size:
+            print(f'[ERROR] Not enough confident predictions have been made. Unable to split data.')
+            return
         from sklearn.model_selection import train_test_split
-        x_train_path, x_val_path, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2, stratify=y_data)
+        x_train_path, x_val_path, y_train, y_val = train_test_split(x_data, y_data, test_size=test_size, stratify=y_data)
         print(f'[INFO] Prepared training data. Building model...')
 
         # build model
-        from builder import build_and_save_model
+        from .builder import build_and_save_model
         from objects import gestures_map # ideally, the gesture map should be capable of dynamically impacting the training cycle. However, I am assuming the set of predicted gestures will not change 
         model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'models')
-        [model_path, training_date] = build_and_save_model(x_train_path, y_train, gestures_map, model_dir) # wait until data collection infrastructure in place to train new models
+        [model_path, training_date] = build_and_save_model(x_train_path, y_train, model_dir) # wait until data collection infrastructure in place to train new models
         
         # determine model number to push to database
         query = 'SELECT model_name from models'
@@ -213,7 +220,7 @@ def orchestrator():
         print(f'[INFO] Model / training data mapping table updated.')
 
         # evaluate model performance and compare with performance of other models
-        import evaluator
+        from . import evaluator
         table = 'model_scores'
         query = f"SELECT * FROM {table}"
         cur.execute(query)

@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 import pdb
 import os
+import tensorflow as tf
+from keras.preprocessing.image import ImageDataGenerator
 
 # background parameters
 history = 0
@@ -52,7 +54,6 @@ def process(frame, bgModel):
 
 def rotate(frame, df_row, df_feats):
     """Generate rotated versions of image."""
-    import tensorflow as tf
     instance = df_row[df_feats[0]]
     user_id = int(df_row[df_feats[1]])
     root_dir = df_row[df_feats[2]]
@@ -68,7 +69,6 @@ def rotate(frame, df_row, df_feats):
     flipped_path = os.path.join(rotated_dir, instance + '_flipped' + file_type)
 
     # mirror image 
-    from keras.preprocessing.image import ImageDataGenerator
     datagen = ImageDataGenerator(horizontal_flip=True)
     frame_ext = frame.reshape((1,) + frame.shape) 
     for frame_mirrored in datagen.flow(frame_ext, batch_size=1):

@@ -32,7 +32,7 @@ def create_model(height, width, num_categories):
 
     return model
 
-def build_and_save_model(x_train_paths, y_train, gestures_map, model_dir):
+def build_and_save_model(x_train_paths, y_train, model_dir):
     """Build and save new VGG-16 model using confident predictions from database. Return trained model path and training date."""
     # define callback functions
     model_checkpoint = ModelCheckpoint(filepath=model_dir, save_best_only=True)
