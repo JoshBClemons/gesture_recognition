@@ -1,3 +1,12 @@
+"""Gesture Recognition
+
+This package launches a web-based application that returns predictions for a user's hand-gesture performed in front of their web camera
+
+This package can also be imported as a module. The following functions are imported to other files:
+
+    * featurizer.rotate - returns rotated versions (flipped, mirrored, and flipped+mirrored) of original image
+"""
+
 import pdb
 import os
 from flask import Flask
@@ -14,7 +23,12 @@ socketio = SocketIO()
 from . import models 
 
 def create_app():
-    """Initializes gesture recognition application."""
+    """Initializes gesture recognition application
+
+    Returns:
+        app (Flask application): Flask application
+    """
+    
     # Import Socket.IO events so that they are registered with Flask-SocketIO
     from . import events  
     app = Flask(__name__)

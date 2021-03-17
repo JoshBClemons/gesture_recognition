@@ -7,7 +7,12 @@ from . import api
 @api.route('/tokens', methods=['POST'])
 @basic_auth.login_required
 def new_token():
-    """Request a user token. This endpoint is requires basic auth with username and password."""
+    """Request a user token. This endpoint is requires basic auth with username and password
+
+    Returns:
+        (Response): Serialized authentication token
+    """
+
     if g.current_user.token is None:
         g.current_user.generate_token()
         db.session.add(g.current_user)

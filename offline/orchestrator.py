@@ -9,7 +9,7 @@ import cv2
 from gesture_recognition import featurizer
 
 def orchestrator():
-    """Pull confidence prediction instances from database and use them to generate new model."""
+    """Pull frames with confidence, accurate predictions from database and use them to generate new model."""
 
     # define database names
     db_frames = 'frames'
@@ -91,7 +91,7 @@ def orchestrator():
         df = df.drop([user_id, root_dir], axis=1) 
         df = df.rename(columns={'true_gest': 'gesture'})
 
-        # add table to database
+        # add table of confident predictions to database
         from sqlalchemy import create_engine
         engine = create_engine("postgresql://{user}:{pw}@{host}/{name}".format(host=Config.DB_HOST, user=Config.DB_USER, pw=Config.DB_PASS, name=Config.DB_NAME))
         table = 'conf_preds'
@@ -121,7 +121,7 @@ def orchestrator():
             df_conf_preds = df_conf_preds.append([[instance_val + '_mf', gesture_val, row[mirrored_flipped_path]]], ignore_index=True)
         df_conf_preds = df_conf_preds.rename(columns={0: instance, 1: 'gesture', 2: 'path'})    
 
-        # define x_data, y_data
+        # form y_data from confident predictions dataframe 
         from keras.utils import to_categorical
         y_data = df_conf_preds['gesture']
         for cat in list(gestures_map.keys()):
@@ -143,24 +143,27 @@ def orchestrator():
             sample_indices = random.sample(gesture_indices, driving_count); 
             indices.extend(sample_indices)
         y_data = y_data.iloc[indices]
+
+        # form x_data from confident predictions dataframe. Size of x_data driven by least occuring gesture 
         x_data = df_conf_preds['path'].iloc[indices]
 
-        # train-test split
+        # split data into training (72%), validation (8%), and testing (20%) sets 
         test_size = 0.2
         if len(x_data) < len(gestures_list)/test_size:
             print(f'[ERROR] Not enough confident predictions have been made. Unable to split data.')
             return
         from sklearn.model_selection import train_test_split
-        x_train_path, x_val_path, y_train, y_val = train_test_split(x_data, y_data, test_size=test_size, stratify=y_data)
+        x_train_paths, x_test_paths, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, stratify=y_data)
+        x_train_paths, x_val_paths, y_train, y_val = train_test_split(x_train_paths, y_train, test_size=0.1, stratify=y_train)
         print(f'[INFO] Prepared training data. Building model...')
 
         # build model
         from .builder import build_and_save_model
         from objects import gestures_map # ideally, the gesture map should be capable of dynamically impacting the training cycle. However, I am assuming the set of predicted gestures will not change 
         model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'models')
-        [model_path, training_date] = build_and_save_model(x_train_path, y_train, model_dir) # wait until data collection infrastructure in place to train new models
+        [model_path, training_date] = build_and_save_model(x_train_paths, x_val_paths, y_train, y_val, model_dir) # wait until data collection infrastructure in place to train new models
         
-        # determine model number to push to database
+        # determine model_name based on entries in database
         query = 'SELECT model_name from models'
         cur.execute(query)
         conn.commit()
@@ -183,11 +186,13 @@ def orchestrator():
         print(f'[INFO] New model stored in database.')
 
         # make dataframe containing all instances used to train new model 
-        new_instances = df_conf_preds.loc[list(x_train_path.index)]['instance'].sort_index()
+        new_instances = df_conf_preds.loc[list(x_train_paths.index)]['instance'].sort_index()
         df_new_instances = pd.DataFrame(new_instances) 
         df_new_instances[model_name] = 1
 
-        # make dataframe from all instances that have ever been used for training and merge with instances used to train new model  
+        # update table that contains which frame instances were used to train which model(s)
+        # In the long run, this table may be helpful for determining which training images correspond with accurate models 
+        # There is likely a cleaner way to accomplish this  
         table = 'model_train_data_map'
         query = f"SELECT {instance} FROM {table}"
         cur.execute(query)
@@ -231,7 +236,7 @@ def orchestrator():
         cur.close()
 
         # evaluate new model and append scores to model score table
-        [f1, eval_date, eval_time, y_true, y_pred] = evaluator.evaluate_model(model_path, x_val_path, y_val)
+        [f1, eval_date, eval_time, y_true, y_pred] = evaluator.evaluate_model(model_path, x_test_paths, y_test)
         rank = 1
         model_results = [model_name, f1, rank, eval_date, eval_time, y_true, y_pred]
         sql_model_scores = sql_model_scores.append([model_results], ignore_index=True)

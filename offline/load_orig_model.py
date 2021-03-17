@@ -9,17 +9,18 @@ cur = conn.cursor(cursor_factory=DictCursor)
 table = 'model_scores'
 
 def load_orig_model():
-    """Upload originally trained model and model performance metrics to database."""
+    """Upload originally trained model and model performance metrics to database"""
+    
     global table
     from sqlalchemy import create_engine
     import pandas as pd
-    f1 = 1 
+    f1 = 1 # temp fake value
     rank = 1
-    eval_time = 10 
-    true_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0]
-    pred_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0]
+    eval_time = 10 # temp fake value
+    true_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0] # temp fake values
+    pred_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0] # temp fake values
     model_name = 'model_0'
-    training_date = datetime.datetime(2021, 2, 1, 0, 0)
+    training_date = datetime.datetime(2021, 2, 1, 0, 0) # temp fake value
     engine = create_engine("postgresql://{user}:{pw}@{host}/{name}".format(host=Config.DB_HOST, user=Config.DB_USER, pw=Config.DB_PASS, name=Config.DB_NAME))
     model_results = [model_name, f1, rank, training_date, eval_time, true_gestures, pred_gestures]
     sql_model_scores = pd.DataFrame([model_results])
@@ -47,13 +48,14 @@ def load_orig_model():
 
 def check_orig_model():
     """Check if there are any models in database. If there are not, upload original model to database."""
+    
     global table
     try:
-        # create table for model scores (temp fake values)
         query = f"SELECT model_name FROM {table} WHERE rank = 1;"
         cur.execute(query)
         conn.commit()
         model_name = cur.fetchall()[0][0]
+
         # close db connection
         cur.close()
     except: 

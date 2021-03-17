@@ -8,23 +8,37 @@ import pandas as pd
 import datetime
 import time
 
-def evaluate_model(model_path, x_val_paths, y_val):
-    """Evaluate model performance. Return F1-score, evaluation date, evaluation time, predicted values, and true values."""
+def evaluate_model(model_path, x_test_paths, y_test):
+    """Evaluate model performance
+
+    Args:
+        model_path (str): Path of locally stored recently trained model
+        x_test_paths (str): Paths in file storage system for testing images
+        y_test (dataframe): Dataframe containing one-hot encoded validation true gesture values
+
+    Returns:
+        f1 (float): Model F1-score
+        eval_date (str): Model evaluation date
+        eval_time (float): Model evaluation time
+        y_true (array): Array of true gestures
+        y_pred (array): Array of predicted gestures
+    """
+
     start_time = time.time()
 
-    # get frames from validation data paths 
-    x_val = []
-    for path in x_val_paths:
+    # get frames from testing data paths 
+    x_test = []
+    for path in x_test_paths:
         frame = cv2.imread(path)
         (_, frame) = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY)
-        x_val.append(frame)
-    x_val = np.array(x_val)
+        x_test.append(frame)
+    x_test = np.array(x_test)
 
-    # evaluate model performance on validation data
+    # evaluate model performance on testing data
     model = load_model(model_path)
-    all_preds = model.predict(x_val)
+    all_preds = model.predict(x_test)
     y_pred = np.argmax(all_preds, axis=1).tolist()
-    y_true = np.argmax(np.array(y_val), axis=1).tolist()
+    y_true = np.argmax(np.array(y_test), axis=1).tolist()
     f1 = f1_score(y_true, y_pred, average='micro')
 
     # summarize results

@@ -7,13 +7,23 @@ from . import api
 
 @api.route('/users', methods=['GET'])
 def get_users():
-    """Return list of users. This endpoint is publicly available, but if the client has a token it should send it, as that indicates to the server that the user is online."""
+    """Return list of users. This endpoint is publicly available, but if the client has a token it should send it, as that indicates to the server that the user is online
+    
+    Returns:
+        (Response): Serialized list of all users
+    """
+    
     users = User.query.order_by(User.updated_at.asc(), User.username.asc())
     return jsonify({'users': [user.to_dict() for user in users.all()]})
 
 @api.route('/users', methods=['POST'])
 def new_user():
-    """Register a new user. This endpoint is publicly available."""
+    """Register a new user. This endpoint is publicly available
+    
+    Returns:
+        (Response): Serialized authentication token
+    """
+    
     creds = request.get_json()
     if creds['username'] == '' or creds['username'] == None or creds['password'] == '' or creds['password'] == None:
         abort(400)

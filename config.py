@@ -3,6 +3,8 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
+    """Class that stores conifguration information for default gesture recognition application""" 
+
     DB_HOST = 'localhost'
     DB_USER = 'postgres'
     DB_PASS = 'temporary_password'
@@ -39,12 +41,18 @@ class Config(object):
     )
 
 class DevelopmentConfig(Config):
+    """Class that stores conifguration information for developing gesture recognition application""" 
+
     DEBUG = True
 
 class ProductionConfig(Config):
+    """Class that stores conifguration information for deploying gesture recognition application""" 
+
     pass
 
 class TestingConfig(Config):
+    """Class that stores conifguration information for testing gesture recognition application""" 
+
     TESTING = True
 
 config = {

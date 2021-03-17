@@ -17,7 +17,8 @@ import json
 
 @socketio.on('request_stats')
 def stats():
-    """Return latest model statistics and usage figures."""
+    """Emit latest model statistics and usage figures"""
+    
     fig_dir = Config.FIGURE_DIRECTORY
     fig_dict = {}
     for root, dirs, files in os.walk(fig_dir):
@@ -40,11 +41,17 @@ def stats():
     fig_dict['cr_figs'] = Config.CR_FIGURE_NAMES
     fig_dict['cm_figs'] = Config.CM_FIGURE_NAMES
     fig_dict['other_figs'] = Config.OTHER_FIGURE_NAMES
+
     emit('stats', fig_dict)
 
 @socketio.on('post_image')
 def process_image(data): 
-    """Process user image and return prediction, prediction confidence, and prediction time. Also, add instance to database."""
+    """Process user image, emit prediction, prediction confidence, and prediction time, and add frame information to database
+
+    Args:
+        data (dict): Dictionary containing client data: streamed webcam frame (byte array), token (str), input command (str), and ground-truth gesture (str)
+    """
+
     token = data['token']    
     verify_token(token, add_to_session=True)
     if g.current_user:
@@ -66,7 +73,7 @@ def process_image(data):
         if 'start_countdown' not in session_keys:
             session['start_countdown'] = False
 
-        # set frame metadata 
+        # frame metadata 
         session['frame_count'] += 1  
         session_id = user.num_logins
         instance = str(user_id) + '_' + str(session_id) + '_' + str(session['frame_count'])
@@ -162,11 +169,13 @@ def process_image(data):
         except:
             print('[WARNING] Duplicate instance. Unable to commit frame to database.')
         db.session.remove()
+
         emit('response_image', output_dict) # make socket.emit
 
 @socketio.on('disconnect')
 def on_disconnect():
     """A Socket.IO client has disconnected. If we know who the user is, then update their status to 'offline.'""" 
+    
     username = session.get('username')
     if username:
         # we have the username in the session, we can mark the user as offline

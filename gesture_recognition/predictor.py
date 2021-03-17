@@ -14,7 +14,20 @@ with open(Config.GESTURES_MAP_PATH, 'r') as fp:
     gestures_map = json.load(fp)
 
 def predict_gesture(frame, true_gest, session):
-    """Predict user gesture and return message for client, predicted gesture, prediction confidence, and prediction time."""
+    """Predict user gesture from procesed frame 
+    
+    Args:
+        frame (array): Array containing processed imaged
+        true_gest (str): Ground-truth gesture inputted by user
+        session (dict): Client session data
+
+    Returns:
+        label (str): Message returned to client 
+        pred_gest (str): Predicted gesture
+        pred_conf (float): Prediction confidence, percentage
+        pred_time (float): Prediction time, seconds
+    """
+    
     if true_gest not in list(gestures_map.values()) and session['start_countdown'] == True:
         label = "No gesture predicted. Please input gesture."
         pred_gest = 'NA'

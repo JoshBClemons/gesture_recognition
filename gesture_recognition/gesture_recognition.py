@@ -14,7 +14,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 @main.before_app_first_request
 def before_first_request():
-    """Start background threads that looks for users that leave and refresh monitoring page."""
+    """Start background threads that looks for users that leave and refresh monitoring page"""
+
     def find_offline_users(app):
         with app.app_context():
             while True:
@@ -31,16 +32,10 @@ def before_first_request():
         t1.start()
         t2.start()
 
-@main.route('/stats', methods=['GET'])
-def get_stats():
-    """Direct user to statistics page."""
-    global dir_path
-    path = os.path.join(dir_path,'static/stats.html')
-
-    return Response(open(path).read(), mimetype="text/html")
-
 @main.after_request
 def after_request(response):
+    """Define acceptable response headers."""
+    
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST')
@@ -49,8 +44,18 @@ def after_request(response):
 
 @main.route('/')
 def index():
-    """Direct user to main gesture recognition page."""
+    """Direct user to gesture recognition main page."""
+    
     global dir_path
     path = os.path.join(dir_path,'static/local.html')
     
+    return Response(open(path).read(), mimetype="text/html")
+
+@main.route('/stats', methods=['GET'])
+def get_stats():  
+    """Direct user to statistics page."""
+    
+    global dir_path
+    path = os.path.join(dir_path,'static/stats.html')
+
     return Response(open(path).read(), mimetype="text/html")

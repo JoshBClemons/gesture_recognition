@@ -17,12 +17,15 @@ thread_running = True
 
 class Error(Exception):
     """Base class for other exceptions"""
+
     pass
 
 class StreamClosedError(Error):
     """Raised when camera stream closed"""
+
     pass
 
+# webstream parameters
 cap = cv2.VideoCapture(1) # change integer to open correct web camera 
 cap.set(3, 1280)
 cap.set(4, 720)
@@ -33,6 +36,7 @@ video_filename = datetime.datetime.now().strftime("%Y_%m_%d_T%H_%M_%S") + '_data
 out = cv2.VideoWriter(filename=video_filename, fourcc=fourcc, fps=30.0, frameSize=(int(cap.get(3)),int(cap.get(4))))
 print(f"Writing video to {video_filename}")
 
+# verify camera stream is open. Raise exception if not. 
 try:
     if cap.isOpened():
         print("Camera stream open")
@@ -44,14 +48,17 @@ except StreamClosedError:
 time.sleep(5)
 
 def record_and_save_frame():
+    """Continuously record frames and save them locally."""
+
     global thread_running
     while True:
-        # read the frame from the camera and send it to the server
+        # read frame
         ret, frame = cap.read()
 
-        # Save video
+        # Save frame
         out.write(frame)
 
+        # show frame
         cv2.imshow('frame', frame)
         cv2.waitKey(1)
 
@@ -59,6 +66,7 @@ def record_and_save_frame():
             raise Exception('No frame returned. Check connection to camera')     
 
 def wait_for_user_stop():
+    """Wait for user input to stop video streaming."""
     user_input = input('Press any key to stop recording: ')
     print('Recording stopped')
 

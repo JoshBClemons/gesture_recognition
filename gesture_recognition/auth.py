@@ -10,7 +10,16 @@ token_auth = HTTPTokenAuth('Bearer')
 
 @basic_auth.verify_password
 def verify_password(username, password):
-    """Password verification callback."""
+    """Password verification callback
+
+    Args:
+        username (str): Client user name
+        password (str): Client password
+
+    Returns:
+        (boolean): True if successful password verification. False otherwise or if blank credentials entered. 
+    """
+    
     if not username or not password or username == "''" or password == "''":
         return False
     user = User.query.filter_by(username=username).first()
@@ -33,13 +42,27 @@ def verify_password(username, password):
     return True
 
 @basic_auth.error_handler
-def password_error(user):
-    """Return a 401 error to the client."""
+def password_error():
+    """Return a 401 error to the client
+
+    Returns:
+        (Response): Serialized error message
+    """
+
     return (jsonify({'error': 'authentication required'}), 401,{'WWW-Authenticate': 'Bearer realm="Authentication Required"'})
 
 @token_auth.verify_token
 def verify_token(token, add_to_session=False):
-    """Token verification callback."""
+    """Token verification callback
+
+    Args:
+        token (str): Client token
+        add_to_session (boolean): Determines whether to store client information in session 
+
+    Returns:
+        (boolean): True if successful token verification. False if user does not exist 
+    """
+
     if add_to_session:
         # clear the session in case auth fails
         if 'username' in session:
@@ -47,10 +70,14 @@ def verify_token(token, add_to_session=False):
     user = User.query.filter_by(token=token).first()
     if user is None:
         return False
+
+    # mark the user as online 
     user.ping()
     db.session.add(user)
     db.session.commit()
     g.current_user = user
+
+    # store username in client session
     if add_to_session:
         session['username'] = user.username
 
@@ -58,7 +85,10 @@ def verify_token(token, add_to_session=False):
 
 @token_auth.error_handler
 def token_error():
-    """Return a 401 error to the client."""
+    """Return a 401 error to the client
+
+    Returns:
+        (Response): Serialized error message
+    """
     
-    return (jsonify({'error': 'authentication required'}), 401,
-            {'WWW-Authenticate': 'Bearer realm="Authentication Required"'})
+    return (jsonify({'error': 'authentication required'}), 401, {'WWW-Authenticate': 'Bearer realm="Authentication Required"'})

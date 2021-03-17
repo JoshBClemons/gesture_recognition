@@ -28,18 +28,20 @@ gestures = list(gestures_map.values())
 figure_dir = Config.FIGURE_DIRECTORY
 
 def update_stats():
-    """Update usage and model statistics."""
-    # gather data from model_scores and frames tables
+    """Update usage and model statistics"""
+   
+    # pull data from model_scores and frames tables
     conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
     query = "SELECT * FROM model_scores" 
     df_model_scores = pd.read_sql(query, con=conn)
     query = "SELECT * FROM frames"
     df_frames = pd.read_sql(query, con=conn)
 
-    # update figures if there are frames in database, otherwise skip
+    # update figures and statistics if there are frames in database, otherwise skip
     if not df_frames.empty and not df_frames[df_frames['true_gest']!=''].empty:
-        ## evaluate - most popular gestures
-        # There may be trends in which gestures are popular depending on time of day, location, etc or perhaps this trend will be random
+
+        # evaluate - most popular gestures
+        # There may be trends in which gestures are popular depending on time of day, location, etc.
         
         # reduce date to year, month, date
         df_frame_gest_pop = copy.deepcopy(df_frames)
@@ -62,7 +64,7 @@ def update_stats():
             for date in dates:
                 labels.append(date.strftime("%Y-%m-%d"))
 
-            # generate dictionary containing count and percentage information for each gesture for each date
+            # generate dictionary containing gesture count and relative frequency of each gesture for each date
             gesture_dict = {}
             for gesture in gestures_with_time['true_gest'].unique():
                 gesture_dict[gesture] = {}
@@ -81,7 +83,7 @@ def update_stats():
                 gesture_dict[gesture]['counts'][date_index] = gesture_counts
                 gesture_dict[gesture]['percentages'][date_index] = gesture_counts*100 / date_total_gestures[date_index]
             
-            # generate bar chart showing relative popularity of different gestures over time 
+            # generate bar chart showing relative frequency of different gestures over time 
             fig, ax = plt.subplots(figsize=(6,8))
             width = 0.2
             prev_gesture_counts = [0 for _ in range(len(dates))]
@@ -100,31 +102,30 @@ def update_stats():
                     x, y = j.get_xy() 
                     ax.text(x+width/2, y+height/2, '{:.0f} %'.format(gesture_percentages[count]), fontsize=16, horizontalalignment='center', verticalalignment='center')
                     total_height[count] += height
-                    count+=1
+                    count+=1            
+            ceiling = math.ceil(max(total_height)*1.25)
+            ceiling_round_up = int(math.ceil(ceiling/100.0))*100
+            step = 50
+            num_steps = int(ceiling_round_up/step+1)
+            yticks = np.linspace(0, ceiling_round_up, num_steps)
             ax.set_ylabel('True Gesture Counts')
             ax.set_xlabel('Date')
             ax.set_title('True Gesture Counts by Date')
-            
-            # define y_limits
-            def roundup(x):
-                return int(math.ceil(x / 100.0)) * 100
-            ceiling = roundup(math.ceil(max(total_height)*1.25))
-            step = 50
-            num_steps = int(ceiling/step+1)
-            yticks = np.linspace(0, ceiling, num_steps)
             ax.set_yticks(yticks)
             ax.tick_params(labelsize=15, labelrotation=0, grid_alpha=0.2, axis='both', which='major', direction='out', length=6, width=2, left=True, bottom=True)
             ax.legend(loc='upper right', fontsize=12)
             
-            # save true_gesture_counts_by_date file
+            # save figure
             file_name = Config.OTHER_FIGURE_NAMES[3] + '.png'
             file_path = os.path.join(figure_dir, file_name)
             plt.savefig(file_path, bbox_inches='tight')
             plt.close()
 
 
-        ## evaluate - classification report and confusion matrix for each model
+        # evaluate - classification report and confusion matrix for each model
         # This informs of relative performance of top 3 models. Perhaps some are better at predicting certain gestures compared to others
+
+        # loop across each model
         labels = list(gestures_map.values())
         for i in range(min(len(df_model_scores), 3)):
             y_true = eval(df_model_scores['true_gestures'][i].replace('{','[').replace('}',']'))
@@ -132,12 +133,10 @@ def update_stats():
             model_name = df_model_scores['model_name'][i]
             eval_date = df_model_scores['evaluation_date'][i]
 
-            # generate and save classification_report
+            # generate and save classification_report as json
             report = classification_report(y_true, y_pred, target_names=labels, zero_division=0, output_dict=True)
             df_report = pd.DataFrame(report).transpose()
             caption = f'Classification Report for {model_name} <br> (trained {eval_date})'
-
-            # save file
             df_report_json = df_report.to_json(orient="split")
             output_dict = json.loads(df_report_json)
             output_dict['caption'] = caption
@@ -146,11 +145,9 @@ def update_stats():
             with open(file_path, 'w') as fp:
                 json.dump(output_dict, fp)
 
-            # generate and save confusion matrix
+            # generate and save confusion matrix as json
             df_confusion_matrix = pd.DataFrame(confusion_matrix(y_true, y_pred), columns=labels, index=labels)
             caption = f'Confusion Matrix for {model_name} <br> (trained {eval_date})'
-
-            # save file
             df_confusion_matrix_json = df_confusion_matrix.to_json(orient="split")
             output_dict = json.loads(df_confusion_matrix_json)
             output_dict['caption'] = caption
@@ -159,7 +156,8 @@ def update_stats():
             with open(file_path, 'w') as fp:
                 json.dump(output_dict, fp)
 
-        ## evaluate - user daily usage
+
+        # evaluate - user daily usage
         # It may be valuable to know which users are using the application most, if there are notable trends with respect to user usage, etc. This should be modified such that users that comprise consume less than 5% of total usage are merged to a single group. 
 
         # get duration spent by each user for each date
@@ -225,29 +223,27 @@ def update_stats():
                 x, y = j.get_xy() 
                 ax.text(x+width/2, y+height/2, '{:.0f} %'.format(user_percentages[count]), fontsize=16, horizontalalignment='center', verticalalignment='center')
                 total_height[count] += height
-                count+=1
+                count+=1       
+        ceiling = math.ceil(max(total_height)*1.5)
+        ceiling_round_up = int(math.ceil(ceiling_round_up/100.0))*100
+        step = 100
+        num_steps = int(ceiling_round_up/step+1)
+        yticks = np.linspace(0, ceiling_round_up, num_steps)
         ax.set_ylabel('Combined User Usage Time (seconds)')
         ax.set_xlabel('Date')
         ax.set_title('Combined User Usage Time by Date')
-        
-        # define y_limits
-        def roundup(x):
-            return int(math.ceil(x / 100.0)) * 100
-        ceiling = roundup(math.ceil(max(total_height)*1.5))
-        step = 100
-        num_steps = int(ceiling/step+1)
-        yticks = np.linspace(0, ceiling, num_steps)
         ax.set_yticks(yticks)
         ax.tick_params(labelsize=15, labelrotation=0, grid_alpha=0.2, axis='both', which='major', direction='out', length=6, width=2, left=True, bottom=True)
         ax.legend(loc='upper right', fontsize=12)
 
-        # save file
+        # save figure
         file_name = Config.OTHER_FIGURE_NAMES[2] + '.png'
         file_path = os.path.join(figure_dir, file_name)
         plt.savefig(file_path, bbox_inches='tight')
         plt.close()
 
-        ## evaluate - total daily user activity
+
+        # evaluate - total daily user activity
         # It is always good to know which times of day most users are using the product to inform advertising strategy or future product development.
         
         # generate df containing number of users during each minute
@@ -286,8 +282,9 @@ def update_stats():
         plt.savefig(file_path, bbox_inches='tight')
         plt.close()
 
-        ## evaluate - daily prediction accuracy for each gesture
-        # This informs us about which gestures are more difficult to predict than others. I significant change in gesture prediction accuracy may correlate with a change in which model is currently implemented.
+
+        # evaluate - daily prediction accuracy for each gesture
+        # This informs us about which gestures are more difficult to predict than others. A significant change in gesture prediction accuracy may correlate with a change in which model is currently implemented.
 
         # generate table with prediction accuracy for each gesture
         df_gest_acc_by_date = df_frames[df_frames['true_gest'] != ''][['date', 'true_gest', 'pred_gest']]
@@ -335,19 +332,22 @@ def update_stats():
             ax.set_title("Gesture Prediction Accuracy by Date")
             ax.legend(loc='upper right', fontsize=14)
             ax.tick_params(labelsize=12, labelrotation=0, grid_alpha=0.2, axis='both', which='major', direction='out', length=6, width=2, left=True, bottom=True)
-            # save file
+
+            # save figure
             file_name = Config.OTHER_FIGURE_NAMES[1] + '.png'
             file_path = os.path.join(figure_dir, file_name)
             plt.savefig(file_path, bbox_inches='tight')
             plt.close()
 
-            # complete
+            # print completion time 
             time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
             message = f'Activity statistics updated at {time}'
             print('[INFO] ' + message)    
     else:
         message = f'No frames collected yet. No statistics to compute.'
         print('[INFO] ' + message)
+
+    # save summary message
     file = open(Config.STATS_MESSAGE_PATH,"w") 
     file.write(message) 
     file.close()

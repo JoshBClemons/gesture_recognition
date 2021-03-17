@@ -7,6 +7,7 @@ import datetime
 
 def reset_tables():
     """Reset offline tables. This is necessary when first running application."""
+    
     # select all high-scoring predictions. These will be used to train new models. 
     conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
     cur = conn.cursor(cursor_factory=DictCursor)

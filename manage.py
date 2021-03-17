@@ -8,11 +8,13 @@ eventlet.monkey_patch()
 from config import Config
 from flask_script import Manager, Command, Server as _Server, Option
 from gesture_recognition import create_app, db, socketio
+from offline import reset_tables
 
 manager = Manager(create_app)
 
 def grab_and_save_model():
-    """Grab highest ranking model and corresponding gestures mapping from database and save them locally."""
+    """Grab highest ranking model and corresponding gestures map from database and save them locally."""
+    
     # grab model and gestures map   
     import psycopg2
     import psycopg2.extras
@@ -40,8 +42,14 @@ def grab_and_save_model():
     with open(Config.GESTURES_MAP_PATH, 'w') as fp:
         json.dump(gestures_map, fp)
 
+@manager.command
 def createdb(drop_first=False):
-    """Grab highest ranking model and corresponding gestures mapping from database and save them locally."""
+    """Creates all application database tables, image directories, and figure directories
+
+    Args:
+        drop_first (bool): Boolean that indicates whether to drop all database tables and directories before creating them 
+    """
+
     image_dir = Config.IMAGE_DIRECTORY
     fig_dir = Config.FIGURE_DIRECTORY
     if drop_first:
@@ -122,17 +130,28 @@ class Server(_Server):
         )
         return options
     def __call__(self, app, host, port, online, reset_online, reset_offline): 
+        """Creates all application database tables, image directories, and figure directories and starts server
+
+        Args:
+            app (Flask application): Flask application
+            host (str): IP address that hosts Flask application
+            port (int): Port Flask application binds to
+            online (boolean): Boolean that indicates whether to run application with secure connection 
+            reset_online (boolean): Boolean that indicates whether to reset application data tables and directories before starting server
+            reset_offline (boolean): Boolean that indicates whether to reset database tables before starting server 
+        """
+
         # create database tables. if drop_first set to True, all database tables will be deleted first
         if reset_online:
             with app.app_context():
                 createdb(reset_online)
         print('[INFO] Starting server.')
 
-        # run server locally or online with SSL context 
+        # run server with or without secure connection. Online instances must be ran with secure connection 
         if online:
             basedir = os.path.abspath(os.path.dirname(__file__))
-            certfile = os.path.join(basedir,'cert.pem')
-            keyfile = os.path.join(basedir,'key.pem')
+            certfile = os.path.join(basedir, 'cert.pem')
+            keyfile = os.path.join(basedir, 'key.pem')
             socketio.run(
                 app,
                 host=host,
@@ -150,28 +169,25 @@ class Server(_Server):
             )
 manager.add_command("start", Server())
 
-
-@manager.command
-def reset_online():
-    """Reset database tables used for data collection."""
-    createdb(reset_online)
-
 @manager.command
 def reset_offline():
     """Reset database tables used for model storage and generation and analysis."""
+
     reset_tables.reset_tables()
 
 @manager.command
 def model_orchestrator():
     """Run model orchestrator to generate new model."""
+
     from offline import orchestrator
     orchestrator.orchestrator()
 
 @manager.command
 def test():
-    """Runs unit tests."""
+    """Run unit tests."""
+
     import os 
-    tests = os.system('python tests.py')
+    tests = os.system('python app_tests.py')
     sys.exit(tests)
 
 if __name__ == '__main__':
@@ -180,7 +196,6 @@ if __name__ == '__main__':
         os.environ['FLACK_CONFIG'] = 'testing'
     elif "-rof" in sys.argv:
         # reset offline database tables. kind of hacky implementation. 
-        from offline import reset_tables
         reset_tables.reset_tables()     
 
     # pull best model from database and save locally
