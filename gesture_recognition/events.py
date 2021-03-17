@@ -53,8 +53,14 @@ def process_image(data):
     """
 
     token = data['token']    
-    verify_token(token, add_to_session=True)
-    if g.current_user:
+    result = verify_token(token, add_to_session=True)
+    if result is False:
+        output_dict = {}
+        output_dict['train_image'] = ''
+        output_dict['label'] = 'Invalid login attempt.'
+        output_dict['command'] = ''
+        emit('response_image', output_dict) 
+    elif g.current_user:
         user_id = g.current_user.id
         user = User.query.get(user_id)
         if user is None:
@@ -170,7 +176,7 @@ def process_image(data):
             print('[WARNING] Duplicate instance. Unable to commit frame to database.')
         db.session.remove()
 
-        emit('response_image', output_dict) # make socket.emit
+        emit('response_image', output_dict) 
 
 @socketio.on('disconnect')
 def on_disconnect():

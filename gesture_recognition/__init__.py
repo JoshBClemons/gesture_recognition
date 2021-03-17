@@ -13,7 +13,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from flask_socketio import SocketIO
-from config import Config
+from config import config
 
 # Flask extensions
 db = SQLAlchemy()
@@ -22,8 +22,11 @@ socketio = SocketIO()
 # Import models so that they are registered with SQLAlchemy
 from . import models 
 
-def create_app():
+def create_app(config_name=None):
     """Initializes gesture recognition application
+
+    Args:
+        config_name (str): Configuration name. Application has configurations for testing, development, and production
 
     Returns:
         app (Flask application): Flask application
@@ -31,8 +34,11 @@ def create_app():
     
     # Import Socket.IO events so that they are registered with Flask-SocketIO
     from . import events  
+
+    if config_name is None:
+        config_name = os.environ.get('APP_CONFIG', 'development')
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config[config_name])
 
     # Initialize flask extensions
     db.init_app(app)

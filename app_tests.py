@@ -6,6 +6,7 @@ import json
 import time
 import unittest
 import mock
+import os
 
 import requests
 
@@ -43,6 +44,7 @@ class OnlineTests(unittest.TestCase):
     # configure GET API compatibility
     def get(self, url, basic_auth=None, token_auth=None):
         response = self.client.get(url, headers=self.get_headers(basic_auth, token_auth))
+        
         # clean up the database session, since this only occurs when the app
         # context is popped.
         db.session.remove()
@@ -58,7 +60,7 @@ class OnlineTests(unittest.TestCase):
     def post(self, url, data=None, basic_auth=None, token_auth=None):
         data = data if data is None else json.dumps(data)
         response = self.client.post(url, data=data, headers=self.get_headers(basic_auth, token_auth))
-        pdb.set_trace()
+
         # clean up the database session, since this only occurs when the app context is popped.
         db.session.remove() # investigate why necessary
         body = response.get_data(as_text=True)
@@ -134,7 +136,8 @@ class OnlineTests(unittest.TestCase):
         client.get_received()
 
         # load test image and token
-        img_path = 'test_image.jpg'
+        img = '80.jpg'        
+        img_path = os.path.join(os.getcwd(), 'data_collection_model_preparation', '2021_01_29_T19_16_17_open_palm_without_glove', 'pure_data', img)
         with open(img_path, 'rb') as img:
             byte_img = img.read()
         data = {}
@@ -197,11 +200,12 @@ class OnlineTests(unittest.TestCase):
         command = '' 
         data['command'] = command
         data['gesture'] = 'fist'
+        data['token'] = token
         client.emit('post_image', data)
         recvd = client.get_received()
-        self.assertEqual(recvd[0]['args'][0]['label'], "No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions.")
-        self.assertEqual(recvd[0]['args'][0]['train_image'][0:4], '/9j/') # check JPEG image output
-        self.assertEqual(recvd[0]['args'][0]['command'], command)   
+        self.assertEqual(recvd[0]['args'][0]['label'], "Invalid login attempt.")
+        self.assertEqual(recvd[0]['args'][0]['train_image'], '') # check JPEG image output
+        self.assertEqual(recvd[0]['args'][0]['command'], '')   
 
         # disconnect the user
         self.assertEqual(client.is_connected(), True)
