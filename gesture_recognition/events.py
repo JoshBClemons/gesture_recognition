@@ -16,6 +16,7 @@ import json
 import copy
 from celery.contrib import rdb
 
+
 @socketio.on('request_stats')
 def stats():
     """Emit latest model statistics and usage figures"""
@@ -45,6 +46,85 @@ def stats():
 
     emit('stats', fig_dict)
 
+
+def process_img_pred(user_id, frame_processed, frame_orig, frame_dict, output_dict):
+    """Handles image storage and database push operations
+    
+    Args:
+        user_id (int): Numerical user ID 
+        frame_orig (array): User's original image
+        frame_processed (array): User's processed image with or without background remove
+        frame_dict (dict): Dictionary containing image information to push to database
+        output_dict (dict): Dictionary containing items to emit to user
+    """
+
+    # prepare image for export  
+    output_bin = cv2.imencode('.jpg', frame_processed)[1].tobytes()
+    encoded_output = base64.b64encode(output_bin).decode()
+    output_dict['train_image'] = encoded_output
+
+    # save original and processed images in directory correponding to user
+    root_dir = Config.IMAGE_DIRECTORY
+    image_path = frame_dict['instance'] + '.jpg'
+
+    # save original images
+    orig_dir = os.path.join(root_dir, 'original')
+    user_dir = os.path.join(orig_dir, str(user_id))
+    raw_path = os.path.join(user_dir, image_path)
+    if cv2.imwrite(raw_path, frame_orig) == False: 
+        os.mkdir(user_dir)
+        print(f'[INFO] Created directory for original images from user {user_id}.')
+        cv2.imwrite(raw_path, frame_orig)
+
+    # save processed images
+    if frame_dict['pred_time'] > 0:
+        processed_dir = os.path.join(root_dir, 'processed')
+        user_dir = os.path.join(processed_dir, str(user_id))
+        processed_path = os.path.join(user_dir, image_path)
+        if cv2.imwrite(processed_path, frame_processed) == False: 
+            os.mkdir(user_dir)
+            print(f'[INFO] Created directory for processed images from user {user_id}.')
+            cv2.imwrite(processed_path, frame_processed)
+    else:
+        processed_path = None
+
+    # store results in database
+    now = datetime.datetime.now()
+    date = now.strftime("%Y-%m-%d %H:%M:%S") 
+    frame_dict['date'] = date
+    frame_dict['user_id'] = user_id
+    frame_dict['root_dir'] = root_dir
+    frame_dict['raw_path'] = raw_path
+    frame_dict['processed_path'] = processed_path
+    frame = Frame.create(frame_dict, user=User.query.get(user_id))
+    try:
+        db.session.add(frame)
+        db.session.commit()
+    except:
+        print('[WARNING] Duplicate instance. Unable to commit frame to database.')
+    db.session.remove()
+
+    return output_dict
+
+
+@celery.task
+def process_img_pred_celery(user_id, frame_processed, frame_orig, frame_dict, output_dict):
+    """Celery task that emits processed image and prediction to user
+    
+    Args:
+        user_id (int): Numerical user ID 
+        frame_orig (array): User's original image
+        frame_processed (array): User's processed image with or without background remove
+        frame_dict (dict): Dictionary containing image information to push to database
+        output_dict (dict): Dictionary containing items to emit to user
+    """
+    
+    from .wsgi_aux import app
+    with app.app_context():
+        output_dict = process_img_pred(user_id, frame_processed, frame_orig, frame_dict, output_dict)
+        socketio.emit('response_image', output_dict, room=output_dict['room'])
+
+
 @celery.task
 def post_error(output_dict):
     """Celery task that emits invalid login error to user
@@ -57,70 +137,6 @@ def post_error(output_dict):
     with app.app_context():
         socketio.emit('response_image', output_dict, room=output_dict['room'])
 
-@celery.task
-def post_pred(user_id, frame_processed, frame_orig, frame_dict, output_dict):
-    """Celery task that handles image storage and database push operations and emits processed image and prediction to user
-    
-    Args:
-        user_id (int): Numerical user ID 
-        frame_orig (array): User's original image
-        frame_processed (array): User's processed image with or without background remove
-        frame_dict (dict): Dictionary containing image information to push to database
-        output_dict (dict): Dictionary containing items to emit to user
-    """
-    
-    from .wsgi_aux import app
-    with app.app_context():
-        # prepare image for export
-        output_bin = cv2.imencode('.jpg', frame_processed)[1].tobytes()
-        encoded_output = base64.b64encode(output_bin).decode()
-        output_dict['train_image'] = encoded_output
-
-        # save original and processed images in directory correponding to user
-        root_dir = Config.IMAGE_DIRECTORY
-        image_path = frame_dict['instance'] + '.jpg'
-
-        # save original images
-        orig_dir = os.path.join(root_dir, 'original')
-        user_dir = os.path.join(orig_dir, str(user_id))
-        raw_path = os.path.join(user_dir, image_path)
-        if cv2.imwrite(raw_path, frame_orig) == False: 
-            os.mkdir(user_dir)
-            print(f'[INFO] Created directory for original images from user {user_id}.')
-            cv2.imwrite(raw_path, frame_orig)
-
-        # save processed images
-        if frame_dict['pred_time'] > 0:
-            processed_dir = os.path.join(root_dir, 'processed')
-            user_dir = os.path.join(processed_dir, str(user_id))
-            processed_path = os.path.join(user_dir, image_path)
-            if cv2.imwrite(processed_path, frame_processed) == False: 
-                os.mkdir(user_dir)
-                print(f'[INFO] Created directory for processed images from user {user_id}.')
-                cv2.imwrite(processed_path, frame_processed)
-        else:
-            processed_path = None
-
-        # store results in database
-        now = datetime.datetime.now()
-        date = now.strftime("%Y-%m-%d %H:%M:%S") 
-        frame_dict['date'] = date
-        frame_dict['user_id'] = user_id
-        frame_dict['root_dir'] = root_dir
-        frame_dict['raw_path'] = raw_path
-        frame_dict['processed_path'] = processed_path
-        frame = Frame.create(frame_dict, user=User.query.get(user_id))
-        try:
-            db.session.add(frame)
-            db.session.commit()
-        except:
-            print('[WARNING] Duplicate instance. Unable to commit frame to database.')
-        db.session.remove()
-        
-        if not current_app.config['TESTING']:
-            socketio.emit('response_image', output_dict, room=output_dict['room'])
-        else:
-            emit('response_image', output_dict, room=output_dict['room'])
 
 @socketio.on('post_image')
 def process_image(data): 
@@ -138,7 +154,10 @@ def process_image(data):
         output_dict['label'] = 'Invalid login attempt.'
         output_dict['command'] = ''
         output_dict['room'] = request.sid
-        post_error.apply_async(args=(output_dict))
+        if not current_app.config['TESTING']:
+            post_error.apply_async(args=(output_dict))
+        else:
+            emit('response_image', output_dict)
     elif g.current_user:
         user_id = g.current_user.id
         user = User.query.get(user_id)
@@ -205,9 +224,11 @@ def process_image(data):
         frame_dict['pred_time'] = pred_time
 
         if not current_app.config['TESTING']:
-            post_pred.apply_async(args=(user_id, frame_processed, frame_orig, frame_dict, output_dict))
+            process_img_pred_celery.apply_async(args=(user_id, frame_processed, frame_orig, frame_dict, output_dict))
         else: 
-            post_pred(user_id, frame_processed, frame_orig, frame_dict, output_dict)
+            output_dict = process_img_pred(user_id, frame_processed, frame_orig, frame_dict, output_dict)
+            emit('response_image', output_dict)
+
 
 @socketio.on('disconnect')
 def on_disconnect():

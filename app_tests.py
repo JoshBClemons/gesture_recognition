@@ -5,7 +5,6 @@ import base64
 import json
 import time
 import unittest
-import mock
 import os
 import shutil
 from config import config

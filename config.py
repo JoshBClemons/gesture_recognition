@@ -8,7 +8,7 @@ class Config(object):
     DB_HOST = 'localhost'
     DB_USER = 'postgres'
     DB_PASS = 'temporary_password'
-    DB_NAME = 'testing'
+    DB_NAME = 'postgres'
     DEBUG = False
     TESTING = False
     IMAGE_DIRECTORY = os.path.join(basedir, 'images')
