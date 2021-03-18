@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  app:
+    build: . 
+    container_name: app
+    extra_hosts: 
+      - "database:172.26.128.1"
+    command: python manage.py start -ro -rof -o 
+    ports:
+      - "443:443"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+  celery:
+    build: .
+    container_name: celery
+    command: python manage.py celery -l INFO
+    extra_hosts: 
+      - "database:172.26.128.1"
+    environment:
+      - C_FORCE_ROOT=true
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on: 
+      - app 
+      - redis 
+  redis:
+    container_name: redis
+    image: "redis:alpine"

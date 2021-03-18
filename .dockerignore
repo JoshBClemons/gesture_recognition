@@ -1,0 +1,12 @@
+.git
+.dockerignore
+
+__pycache__/
+data_collection_model_preparation/
+images/
+gesture_recognition/figures/
+app_tests.py
+LICENSE
+README.md 
+.jpg
+.png

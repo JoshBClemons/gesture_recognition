@@ -9,97 +9,10 @@ from config import Config
 from flask_script import Manager, Command, Server as _Server, Option
 from gesture_recognition import create_app, db, socketio
 from offline import reset_tables
+import shutil
 
 manager = Manager(create_app)
 
-def grab_and_save_model():
-    """Grab highest ranking model and corresponding gestures map from database and save them locally."""
-    
-    # grab model and gestures map   
-    import psycopg2
-    import psycopg2.extras
-    import json
-    conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    table = 'model_scores'
-    query = f"SELECT model_name FROM {table} WHERE rank = 1;"
-    cur.execute(query)
-    conn.commit()
-    model_name = cur.fetchone()[0]
-    table = 'models'
-    query = f"SELECT model, gestures_map FROM {table} WHERE model_name = '{model_name}'"
-    cur.execute(query)
-    conn.commit()
-    data = cur.fetchone()
-    model = data[0]
-    gestures_map = data[1]
-    cur.close()
-
-    # save model and gestures map locally
-    write_model = open(Config.MODEL_PATH, 'wb')
-    write_model.write(model)
-    write_model.close()
-    with open(Config.GESTURES_MAP_PATH, 'w') as fp:
-        json.dump(gestures_map, fp)
-
-@manager.command
-def createdb(drop_first=False):
-    """Creates all application database tables, image directories, and figure directories
-
-    Args:
-        drop_first (bool): Boolean that indicates whether to drop all database tables and directories before creating them 
-    """
-
-    image_dir = Config.IMAGE_DIRECTORY
-    fig_dir = Config.FIGURE_DIRECTORY
-    if drop_first:
-        import shutil
-
-        # delete image directories
-        if os.path.isdir(image_dir):
-            shutil.rmtree(image_dir)
-
-        # delete statistics figures directory         
-        if os.path.isdir(fig_dir):
-            shutil.rmtree(fig_dir)
-
-        # delete database tables
-        db.drop_all()
-        print(f'[INFO] Deleted all image and figure directories and database tables.')          
-
-    # create main image directory
-    if os.path.isdir(image_dir) == False:
-        os.mkdir(image_dir)
-        print(f'[INFO] Created file storage system at {image_dir}.')
-    else: 
-        print(f'[INFO] File storage system already exists at {image_dir}.')
-
-    # create original images sub-directory
-    orig_dir = os.path.join(image_dir, 'original')
-    if os.path.isdir(orig_dir) == False:
-        os.mkdir(orig_dir)
-        print(f'[INFO] Created directory for original images at {orig_dir}.')
-    else: 
-        print(f'[INFO] Directory for original images already exists at {orig_dir}.')
-
-    # create processed images sub-directory
-    processed_dir = os.path.join(image_dir, 'processed')
-    if os.path.isdir(processed_dir) == False:
-        os.mkdir(processed_dir)
-        print(f'[INFO] Created directory for processed images at {processed_dir}.')
-    else: 
-        print(f'[INFO] Directory for processed images already exists at {processed_dir}.')
-
-    # create statistics figures directory
-    if os.path.isdir(fig_dir) == False:
-        os.mkdir(fig_dir)
-        print(f'[INFO] Created figure directory at {fig_dir}.')
-    else: 
-        print(f'[INFO] Figure directory already exists at {fig_dir}.')
-
-    # create database tables
-    db.create_all()
-    print(f'[INFO] Created database tables.')
 
 class Server(_Server):
     help = description = 'Runs the Socket.IO web server'
@@ -141,10 +54,11 @@ class Server(_Server):
             reset_offline (boolean): Boolean that indicates whether to reset database tables before starting server 
         """
 
-        # create database tables. if drop_first set to True, all database tables will be deleted first
+        # reset database tables and directories
         if reset_online:
             with app.app_context():
-                createdb(reset_online)
+                create_db(reset_online)
+                reset_dirs()
         print('[INFO] Starting server.')
 
         # run server with or without secure connection. Online instances must be ran with secure connection 
@@ -169,17 +83,87 @@ class Server(_Server):
             )
 manager.add_command("start", Server())
 
+
 class CeleryWorker(Command):
     """Starts the celery worker."""
 
-    name = 'celery'
-    capture_all_args = True
-
+    # create figure and image directories
+    reset_dirs()
     def run(self, argv):
         ret = subprocess.call(     
             ['celery', '--app=gesture_recognition.celery', 'worker'] + argv)
         sys.exit(ret)
 manager.add_command("celery", CeleryWorker())
+
+
+def grab_and_save_model():
+    """Grab highest ranking model and corresponding gestures map from database and save them locally."""
+    
+    import psycopg2
+    import psycopg2.extras
+    import json
+    conn = psycopg2.connect(host=Config.DB_HOST, database=Config.DB_NAME, user=Config.DB_USER, password=Config.DB_PASS)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    table = 'model_scores'
+    query = f"SELECT model_name FROM {table} WHERE rank = 1;"
+    cur.execute(query)
+    conn.commit()
+    model_name = cur.fetchone()[0]
+    table = 'models'
+    query = f"SELECT model, gestures_map FROM {table} WHERE model_name = '{model_name}'"
+    cur.execute(query)
+    conn.commit()
+    data = cur.fetchone()
+    model = data[0]
+    gestures_map = data[1]
+    cur.close()
+
+    # save model and gestures map locally
+    write_model = open(Config.MODEL_PATH, 'wb')
+    write_model.write(model)
+    write_model.close()
+    with open(Config.GESTURES_MAP_PATH, 'w') as fp:
+        json.dump(gestures_map, fp)
+
+
+@manager.command
+def create_db(drop_first=False):
+    """Creates application database tables
+
+    Args:
+        drop_first (bool): Boolean that indicates whether to drop all database tables and directories before creating them 
+    """
+
+    # if drop_first is True, delete database tables first
+    if drop_first:
+        db.drop_all()
+    db.create_all()
+    print(f'[INFO] Created database tables.')
+
+
+@manager.command
+def reset_dirs():
+    """Reset image and figure directories"""
+
+    image_dir = Config.IMAGE_DIRECTORY
+    fig_dir = Config.FIGURE_DIRECTORY
+
+    # delete directories
+    if os.path.isdir(image_dir):
+        shutil.rmtree(image_dir)    
+    if os.path.isdir(fig_dir):
+        shutil.rmtree(fig_dir)      
+
+    # create directories
+    os.mkdir(image_dir)
+    orig_dir = os.path.join(image_dir, 'original')
+    processed_dir = os.path.join(image_dir, 'processed')
+    os.mkdir(orig_dir)
+    os.mkdir(processed_dir)
+    os.mkdir(fig_dir)
+
+    print(f'[INFO] Created image and figure directories.')
+
 
 @manager.command
 def reset_offline():
@@ -187,12 +171,14 @@ def reset_offline():
 
     reset_tables.reset_tables()
 
+
 @manager.command
 def model_orchestrator():
     """Run model orchestrator to generate new model."""
 
     from offline import orchestrator
     orchestrator.orchestrator()
+
 
 @manager.command
 def test():
@@ -202,6 +188,7 @@ def test():
     tests = os.system('python app_tests.py')
     sys.exit(tests)
 
+
 if __name__ == '__main__':
     if sys.argv[1] == 'test':
         # ensure that Flask-Script uses the testing configuration
@@ -209,7 +196,7 @@ if __name__ == '__main__':
     elif "-rof" in sys.argv:
         # reset offline database tables. kind of hacky implementation. 
         reset_tables.reset_tables()     
-
-    # pull best model from database and save locally
-    grab_and_save_model()
+    if "celery" not in sys.argv:
+        # pull best model from database and save locally
+        grab_and_save_model()
     manager.run()

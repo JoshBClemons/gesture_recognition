@@ -5,10 +5,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
     """Class that stores conifguration information for default gesture recognition application""" 
 
-    DB_HOST = 'localhost'
+    DB_HOST = 'database' #prev localhost 
     DB_USER = 'postgres'
     DB_PASS = 'temporary_password'
-    DB_NAME = 'postgres'
+    DB_NAME = 'testing'
     DEBUG = False
     TESTING = False
     IMAGE_DIRECTORY = os.path.join(basedir, 'images')

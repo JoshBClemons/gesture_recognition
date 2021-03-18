@@ -20,11 +20,11 @@ db = SQLAlchemy()
 socketio = SocketIO()
 celery = Celery(__name__,
                 broker=os.environ.get('CELERY_BROKER_URL', 'redis://'),
-                backend=os.environ.get('CELERY_BROKER_URL', 'redis://'))
+                backend=os.environ.get('CELERY_BACKEND', 'redis://'))
 celery.config_from_object('celeryconfig')
 
 # Import celery task so that it is registered with the Celery workers
-from .tasks import run_flask_request  # noqa
+from .tasks import run_app_request
 
 # Import models so that they are registered with SQLAlchemy
 from . import models 

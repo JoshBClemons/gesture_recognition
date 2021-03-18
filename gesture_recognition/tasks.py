@@ -22,7 +22,7 @@ tasks_bp = Blueprint('tasks', __name__)
 
 
 @celery.task
-def run_flask_request(environ):
+def run_app_request(environ):
     from .wsgi_aux import app
 
     if '_wsgi.input' in environ:
