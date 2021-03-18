@@ -169,6 +169,18 @@ class Server(_Server):
             )
 manager.add_command("start", Server())
 
+class CeleryWorker(Command):
+    """Starts the celery worker."""
+
+    name = 'celery'
+    capture_all_args = True
+
+    def run(self, argv):
+        ret = subprocess.call(     
+            ['celery', '--app=gesture_recognition.celery', 'worker'] + argv)
+        sys.exit(ret)
+manager.add_command("celery", CeleryWorker())
+
 @manager.command
 def reset_offline():
     """Reset database tables used for model storage and generation and analysis."""

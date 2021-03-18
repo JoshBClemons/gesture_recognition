@@ -14,18 +14,35 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from flask_socketio import SocketIO
 from config import config
+from celery import Celery
+
+# temp
+from threading import Lock
+
+async_mode = None
+thread = None
+thread_lock = Lock()
+# temp
 
 db = SQLAlchemy()
 socketio = SocketIO()
+celery = Celery(__name__,
+                broker=os.environ.get('CELERY_BROKER_URL', 'redis://'),
+                backend=os.environ.get('CELERY_BROKER_URL', 'redis://'))
+celery.config_from_object('celeryconfig')
+
+# Import celery task so that it is registered with the Celery workers
+from .tasks import run_flask_request  # noqa
 
 # Import models so that they are registered with SQLAlchemy
 from . import models 
 
-def create_app(config_name=None):
+def create_app(config_name=None, main=True):
     """Initializes gesture recognition application
 
     Args:
         config_name (str): Configuration name. Application has configurations for testing, development, and production
+        main (bool): If True, starting hosted application. If False, starting application used for running Celery tasks
 
     Returns:
         app (Flask application): Flask application
@@ -41,7 +58,21 @@ def create_app(config_name=None):
 
     # Initialize flask extensions
     db.init_app(app)
-    socketio.init_app(app)
+    if main:
+        # Initialize socketio server and attach it to the message queue, so
+        # that everything works even when there are multiple servers or
+        # additional processes such as Celery workers wanting to access
+        # Socket.IO
+        socketio.init_app(app,
+                          message_queue=app.config['SOCKETIO_MESSAGE_QUEUE'])
+    else:
+        # Initialize socketio to emit events through through the message queue
+        # Note that since Celery does not use eventlet, we have to be explicit
+        # in setting the async mode to not use it.
+        socketio.init_app(None,
+                          message_queue=app.config['SOCKETIO_MESSAGE_QUEUE'],
+                          async_mode='threading')
+    celery.conf.update(config[config_name].CELERY_CONFIG)
 
     # Register web application routes
     from .gesture_recognition import main as main_blueprint

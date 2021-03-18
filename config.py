@@ -17,6 +17,11 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # celery
+    REQUEST_STATS_WINDOW = 15
+    CELERY_CONFIG = {}
+    SOCKETIO_MESSAGE_QUEUE = os.environ.get('SOCKETIO_MESSAGE_QUEUE', os.environ.get('CELERY_BROKER_URL','redis://'))
+
     # tells orchestrator where to look for featurizer.py
     FEATURIZER_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)),'gesture_recognition', 'featurizer.py')
     

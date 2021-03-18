@@ -1,8 +1,7 @@
 import pdb
 from .models import Frame, User
-from . import db, socketio
-from . import featurizer
-from . import predictor
+from . import db, socketio, celery
+from . import featurizer, predictor
 from .auth import verify_token
 from flask import g, session, request
 from flask_socketio import emit 
@@ -43,6 +42,18 @@ def stats():
     fig_dict['other_figs'] = Config.OTHER_FIGURE_NAMES
 
     emit('stats', fig_dict)
+
+@celery.task
+def post_pred(user_id, output_dict):
+    """Celery task that posts a prediction."""
+
+    from .wsgi_aux import app
+    with app.app_context():
+        user = User.query.get(user_id)
+        if user is None:
+            return
+
+        emit('response_image', output_dict) 
 
 @socketio.on('post_image')
 def process_image(data): 
@@ -176,7 +187,8 @@ def process_image(data):
             print('[WARNING] Duplicate instance. Unable to commit frame to database.')
         db.session.remove()
 
-        emit('response_image', output_dict) 
+        # emit('response_image', output_dict) 
+        post_pred.apply_async(args=(user_id, output_dict))
 
 @socketio.on('disconnect')
 def on_disconnect():
