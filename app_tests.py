@@ -7,7 +7,8 @@ import time
 import unittest
 import mock
 import os
-
+import shutil
+from config import config
 import requests
 
 from gesture_recognition import create_app, db, socketio
@@ -20,7 +21,23 @@ class OnlineTests(unittest.TestCase):
 
         self.ctx = self.app.app_context()
         self.ctx.push()
+        
+        # reset image and figure directories
+        image_dir = config['testing'].IMAGE_DIRECTORY
+        fig_dir = config['testing'].FIGURE_DIRECTORY
+            
+        if os.path.isdir(image_dir):
+            shutil.rmtree(image_dir)
+        if os.path.isdir(fig_dir):
+            shutil.rmtree(fig_dir)
         db.drop_all()  
+
+        os.mkdir(image_dir)
+        orig_dir = os.path.join(image_dir, 'original')
+        os.mkdir(orig_dir)
+        processed_dir = os.path.join(image_dir, 'processed')
+        os.mkdir(processed_dir)
+        os.mkdir(fig_dir)
         db.create_all()
         self.client = self.app.test_client() # used to process all API and socketio calls 
 
@@ -136,8 +153,8 @@ class OnlineTests(unittest.TestCase):
         client.get_received()
 
         # load test image and token
-        img = '80.jpg'        
-        img_path = os.path.join(os.getcwd(), 'data_collection_model_preparation', '2021_01_29_T19_16_17_open_palm_without_glove', 'pure_data', img)
+        img = 'test.jpg'        
+        img_path = os.path.join(os.getcwd(), img)
         with open(img_path, 'rb') as img:
             byte_img = img.read()
         data = {}
