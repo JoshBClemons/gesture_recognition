@@ -16,14 +16,6 @@ from flask_socketio import SocketIO
 from config import config
 from celery import Celery
 
-# temp
-from threading import Lock
-
-async_mode = None
-thread = None
-thread_lock = Lock()
-# temp
-
 db = SQLAlchemy()
 socketio = SocketIO()
 celery = Celery(__name__,
@@ -37,6 +29,9 @@ from .tasks import run_flask_request  # noqa
 # Import models so that they are registered with SQLAlchemy
 from . import models 
 
+# Import Socket.IO events so that they are registered with Flask-SocketIO
+from . import events  
+
 def create_app(config_name=None, main=True):
     """Initializes gesture recognition application
 
@@ -48,9 +43,6 @@ def create_app(config_name=None, main=True):
         app (Flask application): Flask application
     """
     
-    # Import Socket.IO events so that they are registered with Flask-SocketIO
-    from . import events  
-
     if config_name is None:
         config_name = os.environ.get('APP_CONFIG', 'development')
     app = Flask(__name__)
@@ -81,5 +73,9 @@ def create_app(config_name=None, main=True):
     # Register API routes
     from .api import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
+
+    # Register async tasks support
+    from .tasks import tasks_bp as tasks_blueprint
+    app.register_blueprint(tasks_blueprint, url_prefix='/tasks')
 
     return app
