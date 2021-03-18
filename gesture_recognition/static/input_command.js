@@ -13,7 +13,7 @@ key.onkeyup = function(){
         send_key = prev_key = input_key.toLowerCase(); 
         prev_letter.style.color = ''
         letter = document.getElementById(input_dict[input_key][0])
-        letter.style.color = "red"
+        letter.style.color = "blue"
         key.value = input_dict[input_key][1]
         setTimeout(() => {
             key.value = ''
@@ -38,7 +38,7 @@ key.onkeyup = function(){
             send_key = prev_key = 'p'
             prev_letter.style.color = ''
             letter = document.getElementById(input_dict[input_key][0])
-            letter.style.color = "red"
+            letter.style.color = "blue"
             key.value = input_dict[input_key][1]
             setTimeout(() => {
                 key.value = ''

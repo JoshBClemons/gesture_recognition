@@ -8,7 +8,12 @@
 
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <style>
-      body {font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", Arial, sans-serif;}
+      body {
+        font-family: "Franklin Gothic", "ITC Franklin Gothic", Arial, sans-serif;
+        background: rgb(255,255,255);
+        background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(165,165,165,1) 50%, rgba(255,255,255,1) 100%);
+        }
+      
       * {
           overflow: hidden; 
           margin: 0;
@@ -48,11 +53,12 @@
         border: 1px solid #ccc;
         cursor: pointer;
       }
-      label.checkbox {
+      #login_response {
         position: relative;
-        left: 20%;
-        padding: 5px;
-        margin: 5px 5px;
+        width: 50%;
+        left: 25%;
+        display: inline-block;
+        text-align: center;
       }
 
       /* Style left and right content */
@@ -120,21 +126,16 @@
     <h1 class="title" id="title">Gesture Recognition by Josh Clemons</h1>
 
     <div class="log_form", id="log_form">
-      <input id="username" type="username" placeholder="Email" name="uname" required>
+      <input id="username" type="username" placeholder="Username or Email" name="uname" required>
       <input id="password" type="password" placeholder="Password" name="psw" required> 
-      <button type="submit", id="login_button">Login to start gesture prediction</button>
+      <button type="submit" id="login_button">Login to start gesture prediction</button>
       <br>
-      <label class="checkbox" >
-        <input type="checkbox" checked="checked" name="remember"> Remember me</input>        
-      </label>
-      <label class="checkbox">
-        <input type="checkbox" checked="checked" name="permission"> <span title="Check this box to allow all webcam images to be saved. This will improve model training results. Only black and white images of gestures will be saved otherwise. Read disclaimer to learn more about what data is collected.">Okay to store all webcam data</span></input>
-      </label>
+      <p id="login_response"></p>
     </div>
 
     <div class="left_content" id="left_content">
       <h2>What does this application do?</h2>
-      <p class="left_text">This application recognizes simple hand gestures performed in front of one's webcam. Images from your webcam's video stream are downloaded, processed, and fed into a modified version of the VGG-16 convolutional neural network. The algorithm's prediction, prediction confidence, and prediction time are returned beneath the "Predicted gesture" field.</p>
+      <p class="left_text">This application recognizes hand gestures performed in front of your webcam. Images from your webcam's stream are downloaded, processed, and fed into a convolutional neural network that returns the prediction, prediction confidence, and prediction time below the "Predicted gesture" field.</p>
       <br>
       <p class="left_text">This algorithm predicts the hand gestures listed below.</p>
       <ul class="left_text"> 
@@ -149,24 +150,38 @@
       <p class="left_text">To use this application, follow the steps listed below.</p>
         <ol class="left_text">
           <li>Permit the website access to your computer's webcam</li>
+          <li>Login using any username and password. There are no restrictions except neither field can be blank.</li>
           <li>Allow the camera to record for several seconds until the image stabilizes and environment lighting becomes constant</li>
-          <li>Completely step out of the camera's field of view and type "b" into the "Input command" field. This saves the current image as the "background image" that will be subtracted from all future images to isolate the presented hand gesture.</li>
+          <li>Completely step out of the camera's field of view and type "b" into the "Input command" field. This saves the current image as the background that will be subtracted from all future images to isolate your hand gesture.</li>
           <li>Perform any one of the listed hand gestures and see how the model performs!</li>
         </ol>  
+      <br>
+      <p class="left_text">To delete the current background image, type "r" into the "Input command" field.</p> 
+      <br>
+      <p class="left_text">To pause the application, type "p" into the "Input command" field. Type "p" again to resume.</p> 
+
+
     </div>
 
     <div class="right_content">
-      <h2 class="right_text">What do these videos show?</h2>
-      <p class="right_text">The top video shows your webcam's video stream while the bottom video shows the processed images that are fed into the neural network. This algorithm is very sensitive to changes in environment lighting, so it is important to monitor the bottom video stream and ensure only your hand appears white while the background remains black. If this is not the case, the algorithm will be fed noisy data and may not function properly.</p> 
+      <h2 class="right_text">What does the bottom video show?</h2>
+      <p class="right_text">The bottom video shows the processed images that are fed into the neural network. This algorithm is very sensitive to changes in background lighting, so it is important to monitor the bottom video and ensure only your hand appears white while the background remains black. If this is not the case, the algorithm will be fed noisy data and may not return accurate predictions.</p> 
       <br>
-      <p class="right_text">If the background appears noisy, step out of the camera's field of view and allow lighting to restabilize. If the background still appears noisy, type "r" into the "Input command" field to erase the current background image and then type "b" to save a new background.</p> 
+      <p class="right_text">If the video is noisy with white and black specks, step out of the camera's field of view and allow lighting to restabilize.</p> 
       <br>
-      <p class="right_text">To pause the current processed image and all predictions, type "p" into the "Input command" field. Type "p" again to resume.</p>
+      <p class="right_text">If the video is still noisy, erase the current background image and save a new one.</p> 
+      <br><br><br>
+      <h2 class="right_text">What data does this application collect?</h2>
+      <p class="right_text">This application collects information necessary for model retraining and to inform usage statistics. With this in mind, the application collects your username, password, usage history, and processed binary images like those shown in the bottom video feed.</p> 
+      <br>
+      <p class="right_text">To view model performance and user activity statistics, click <a href="/stats">here</a>.</p> 
       <br><br><br>
       <h2 class="right_text">Project background and contact information</h2>
-      <p class="right_text">I designed, developed, and deployed this gesture recognition application to satisfy the capstone project requirement for Springboard's Machine Learning Engineering certification course. This project has exposed me to numerous facets of machine learning and software engineering including data collection, data processing, machine learning modeling, RESTful API design, model deployment, and web design.</p> 
+      <p class="right_text">I developed and deployed this application to satisfy the capstone project requirement for Springboard's Machine Learning Engineering certification course.</p> 
       <br>
-      <p class="right_text">In case you would like to get a hold of me, my contact information is listed below.</p> 
+      <p class="right_text">This project has exposed me to numerous facets of machine learning and software engineering including data collection, cleaning, and processing, modeling with neural networks, RESTful API design, model deployment using AWS products, and web design.</p> 
+      <br>
+      <p class="right_text">My contact information is below if you would like to get a hold of me.</p> 
       <ul class="right_text"> 
         <li><a href="mailto:clemonsjoshua6@gmail.com">Email: clemonsjoshua6@gmail.com</a></li>
         <li><a href="https://github.com/JoshBClemons/">GitHub: /JoshBClemons</a></li>

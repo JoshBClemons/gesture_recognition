@@ -53,8 +53,9 @@ var process_login = function () {
             imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
             imageCanvas.toBlob(postFile, 'image/jpeg'); 
         }
-        else if (this.status == 400){
-            console.log("Username already exists.")
+        else if (this.status == 401){
+            var login_response = document.getElementById('login_response');
+            login_response.innerHTML = 'Incorrect username or password.';
         }
         else {
             console.error(xhr);

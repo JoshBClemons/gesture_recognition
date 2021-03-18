@@ -15,7 +15,6 @@ from sqlalchemy import create_engine
 from flask_socketio import SocketIO
 from config import config
 
-# Flask extensions
 db = SQLAlchemy()
 socketio = SocketIO()
 
