@@ -171,7 +171,7 @@ class Server(_Server):
             socketio.run(
                 app,
                 host=host,
-                port=80,
+                port=port,
                 use_reloader=False,
             )
 manager.add_command("start", Server())
@@ -179,6 +179,9 @@ manager.add_command("start", Server())
 
 class CeleryWorker(Command):
     """Starts the celery worker."""
+
+    name = 'celery'
+    capture_all_args = True
 
     # create figure and image directories
     reset_dirs()

@@ -18,13 +18,14 @@ Sources
 
 ## Installation
 
-All the code and examples were tested on Python 3.8.5 with PostgreSQL 13.2. 
+All the code and examples were tested on Python 3.8.5 in Ubuntu 20.04.2.
+
+Install PostgreSQL 13.2, start the service, and ensure database name, host, username, and password match those in the application configuration file (config.py)
+Install Redis 6.0.10 or later and start the service 
 
 Create a virtual environment and install the requirements with pip.
 
     pip install -r requirements.txt
-
-Install PostgreSQL 13.2 is installed and ensure database name, host, username, and password match those in the application configuration file (config.py)
 
 ## Running locally
 
@@ -33,15 +34,11 @@ create database tables and local file directories and start the application with
 
     python manage.py start -ro -rof
 
-With the application running, navigate to `http://0.0.0.0` on the address bar to interact with the application or `http://0.0.0.0/stats' to view usage statistics. 
+With the application running, navigate to `http://0.0.0.0:5000` on the address bar to interact with the application or `http://0.0.0.0:5000/stats' to view usage statistics. 
 
 To run the application without resetting the database tables and local file directories, start the application with the command:
 
     python manage.py start
-
-To run the application over HTTPS, start the application with the command below. This will serve the application at `https://0.0.0.0`.
-
-    python manage.py start -o
 
 You can add `--help` to see what other start up options are available.
 
@@ -55,10 +52,11 @@ Run application in Docker container that accesses PostgreSQL database hosted on 
     listen_addresses = '*'
 3. Find IP address of client machine.
     Open Command Prompt --> Type "ipconfig" --> Record IPv4 Address from Ethernet adapter vEthernet (WSL) field
-4. After building Docker image, run Docker container as shown below.
-    docker run --add-host=localhost:*IPv4 Address* -p 443:443 *Image name*
+4. In config.py, set DB_HOST = 'database'
+5. In docker-compose.yml, update IP address under extra_hosts fields with client machine IP address  
+6. Build docker images and run containers with docker-compose up
 
-Since the Dockerfile is currently configured to run the application within an SSL context, the application runs on 'https://0.0.0.0' and usage statistics are updated at `https://0.0.0.0/stats'
+Since the Dockerfile is currently configured to run the application over HTTPS, the application runs on 'https://0.0.0.0' and usage statistics are updated at `https://0.0.0.0/stats'
 
 ##  Usage
 
@@ -73,10 +71,11 @@ After collecting data, you can train new models with the following command:
     python manage.py model_orchestrator
 
 ## Areas of Improvement
-1. enable threading (e.g. using Celery) to process multiple requests simultaneously and to enable module execution timing 
-2. deploy with flask/gunicorn/nginx stack
-3. enable model retraining using AWS SageMaker and Airflow
-4. retrain model with examples of non-gestures to reduce false positive rate 
-5. replace print statements with logging
+1. deploy with flask/gunicorn/nginx stack
+2. enable model retraining using AWS SageMaker and Airflow
+3. retrain model with examples of non-gestures to reduce false positive rate 
+4. refactor such that Flask debugger can operate without resetting all offline database tables
+5. serve prediction model with Tensorflow Serving to allow predictions to be performed in Celery task. This may significantly improve latency 
+6. replace print statements with logging
 
 Please reach out to me at clemonsjoshua6@gmail.com if you have any suggestions for how to improve this application or the model that drives it.
