@@ -8,6 +8,7 @@ import threading
 import time
 from . import monitoring
 from . import events
+from config import config
 
 main = Blueprint('main', __name__)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -22,13 +23,13 @@ def before_first_request():
                 users = User.find_offline_users()
                 db.session.remove() 
                 time.sleep(30)
-    def update_monitoring():
+    def update_monitoring(update_period):
         while True:
             monitoring.update_stats()
-            time.sleep(5)
+            time.sleep(update_period)
     if not current_app.config['TESTING']:
         t1 = threading.Thread(target=find_offline_users, args=(current_app._get_current_object(),))
-        t2 = threading.Thread(target=update_monitoring)
+        t2 = threading.Thread(target=update_monitoring, args=current_app.config['UPDATE_STATS_SECS'])
         t1.start()
         t2.start()
 

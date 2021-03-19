@@ -14,88 +14,6 @@ import shutil
 manager = Manager(create_app)
 
 
-class Server(_Server):
-    help = description = 'Runs the Socket.IO web server'
-    def get_options(self):
-        options = (
-            Option('-h', '--host',
-                   dest='host',
-                   default='0.0.0.0'),
-            Option('-p', '--port',
-                   dest='port',
-                   type=int,
-                   default=self.port), # or self.port
-            Option('-o', '--online',
-                   action='store_true',
-                   dest='online',
-                   help='run application in SSL context',
-                   default=False),
-            Option('-ro', '--reset-online',
-                   action='store_true',
-                   dest='reset_online',
-                   help='reset application database tables and directories before running server',
-                   default=False),
-            Option('-rof', '--reset-offline',
-                   action='store_true',
-                   dest='reset_offline',
-                   help='reset offline database tables before running server',
-                   default=False),    
-        )
-        return options
-    def __call__(self, app, host, port, online, reset_online, reset_offline): 
-        """Creates all application database tables, image directories, and figure directories and starts server
-
-        Args:
-            app (Flask application): Flask application
-            host (str): IP address that hosts Flask application
-            port (int): Port Flask application binds to
-            online (boolean): Boolean that indicates whether to run application with secure connection 
-            reset_online (boolean): Boolean that indicates whether to reset application data tables and directories before starting server
-            reset_offline (boolean): Boolean that indicates whether to reset database tables before starting server 
-        """
-
-        # reset database tables and directories
-        if reset_online:
-            with app.app_context():
-                create_db(reset_online)
-                reset_dirs()
-        print('[INFO] Starting server.')
-
-        # run server with or without secure connection. Online instances must be ran with secure connection 
-        if online:
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            certfile = os.path.join(basedir, 'cert.pem')
-            keyfile = os.path.join(basedir, 'key.pem')
-            socketio.run(
-                app,
-                host=host,
-                port=443,
-                keyfile=keyfile,
-                certfile=certfile,
-                use_reloader=False,
-            )
-        else:
-            socketio.run(
-                app,
-                host=host,
-                port=80,
-                use_reloader=False,
-            )
-manager.add_command("start", Server())
-
-
-class CeleryWorker(Command):
-    """Starts the celery worker."""
-
-    # create figure and image directories
-    reset_dirs()
-    def run(self, argv):
-        ret = subprocess.call(     
-            ['celery', '--app=gesture_recognition.celery', 'worker'] + argv)
-        sys.exit(ret)
-manager.add_command("celery", CeleryWorker())
-
-
 def grab_and_save_model():
     """Grab highest ranking model and corresponding gestures map from database and save them locally."""
     
@@ -187,6 +105,88 @@ def test():
     import os 
     tests = os.system('python app_tests.py')
     sys.exit(tests)
+    
+
+class Server(_Server):
+    help = description = 'Runs the Socket.IO web server'
+    def get_options(self):
+        options = (
+            Option('-h', '--host',
+                   dest='host',
+                   default='0.0.0.0'),
+            Option('-p', '--port',
+                   dest='port',
+                   type=int,
+                   default=self.port), # or self.port
+            Option('-o', '--online',
+                   action='store_true',
+                   dest='online',
+                   help='run application in SSL context',
+                   default=False),
+            Option('-ro', '--reset-online',
+                   action='store_true',
+                   dest='reset_online',
+                   help='reset application database tables and directories before running server',
+                   default=False),
+            Option('-rof', '--reset-offline',
+                   action='store_true',
+                   dest='reset_offline',
+                   help='reset offline database tables before running server',
+                   default=False),    
+        )
+        return options
+    def __call__(self, app, host, port, online, reset_online, reset_offline): 
+        """Creates all application database tables, image directories, and figure directories and starts server
+
+        Args:
+            app (Flask application): Flask application
+            host (str): IP address that hosts Flask application
+            port (int): Port Flask application binds to
+            online (boolean): Boolean that indicates whether to run application with secure connection 
+            reset_online (boolean): Boolean that indicates whether to reset application data tables and directories before starting server
+            reset_offline (boolean): Boolean that indicates whether to reset database tables before starting server 
+        """
+
+        # reset database tables and directories
+        if reset_online:
+            with app.app_context():
+                create_db(reset_online)
+                reset_dirs()
+        print('[INFO] Starting server.')
+
+        # run server with or without secure connection. Online instances must be ran with secure connection 
+        if online:
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            certfile = os.path.join(basedir, 'cert.pem')
+            keyfile = os.path.join(basedir, 'key.pem')
+            socketio.run(
+                app,
+                host=host,
+                port=443,
+                keyfile=keyfile,
+                certfile=certfile,
+                use_reloader=False,
+            )
+        else:
+            socketio.run(
+                app,
+                host=host,
+                port=80,
+                use_reloader=False,
+            )
+manager.add_command("start", Server())
+
+
+class CeleryWorker(Command):
+    """Starts the celery worker."""
+
+    # create figure and image directories
+    reset_dirs()
+    def run(self, argv):
+        ret = subprocess.call(     
+            ['celery', '--app=gesture_recognition.celery', 'worker'] + argv)
+        sys.exit(ret)
+manager.add_command("celery", CeleryWorker())
 
 
 if __name__ == '__main__':
