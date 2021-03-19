@@ -45,7 +45,7 @@ def predict_gesture(frame, true_gest, session):
         pred_conf = round(np.max(pred)*100,4)
         label = f'{pred_conf}% confident that gesture is {pred_gest}. Result predicted in {pred_time} seconds.'
     else: 
-        label = "No gesture predicted. Please exit frame of camera and press 'b' to save background and commence predictions."
+        label = "No gesture predicted. Please exit camera's field of view then press 'b' to save background and commence predictions."
         pred_gest = 'NA'
         pred_conf = pred_time = 0
         

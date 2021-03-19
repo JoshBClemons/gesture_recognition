@@ -5,7 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
     """Class that stores conifguration information for default gesture recognition application""" 
 
-    DB_HOST = 'localhost' #database in docker; localhost locally; 
+    DB_HOST = 'database' #database when running in docker; localhost when running locally; 
     DB_USER = 'postgres'
     DB_PASS = 'temporary_password'
     DB_NAME = 'testing'
@@ -16,7 +16,6 @@ class Config(object):
     GESTURES_MAP_PATH = os.path.join(basedir, 'gesture_recognition', 'gestures_map.json')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPDATE_STATS_SECS = 60
     
     # celery
     CELERY_CONFIG = {}
@@ -28,6 +27,7 @@ class Config(object):
     # information for monitoring.py
     FIGURE_DIRECTORY = os.path.join(basedir, 'gesture_recognition', 'figures')
     STATS_MESSAGE_PATH = os.path.join(FIGURE_DIRECTORY, 'stats_message.txt')
+    UPDATE_STATS_SECS = 15
     CR_FIGURE_NAMES = (
         "top_classification_report", 
         "middle_classification_report", 

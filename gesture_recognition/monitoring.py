@@ -204,7 +204,7 @@ def update_stats():
             user_dict[user]['duration'][date_index] = user_durations
             user_dict[user]['percentages'][date_index] = user_durations*100 / date_total_duration[date_index]
 
-        # generate bar chart showing relative usage of users over time
+        # generate bar chart showing relative user activity over time
         fig, ax = plt.subplots(figsize=(6,8))
         width = 0.2
         prev_user_durations = [0 for _ in range(len(dates))]
@@ -339,10 +339,10 @@ def update_stats():
             plt.savefig(file_path, bbox_inches='tight')
             plt.close()
 
-            # print completion time 
-            time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-            message = f'Activity statistics updated at {time}'
-            print('[INFO] ' + message)    
+        # print completion time 
+        time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+        message = f'Activity statistics updated at {time}'
+        print('[INFO] ' + message)    
     else:
         message = f'No frames collected yet. No statistics to compute.'
         print('[INFO] ' + message)

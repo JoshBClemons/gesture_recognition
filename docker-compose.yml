@@ -17,7 +17,7 @@ services:
   celery:
     build: .
     container_name: celery
-    command: python manage.py celery -l INFO
+    command: python manage.py celery
     extra_hosts: 
       - "database:172.26.128.1"
     environment:
