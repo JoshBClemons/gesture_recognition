@@ -1,11 +1,10 @@
 var gesture_key = document.getElementById("input_gest");
 var send_gesture = ''
 gesture_dict = {
-    "c": "closed palm",
     "f": "fist",
     "l": "L",
-    "o": "open palm",
-    "t": "thumbs up",
+    "p": "palm",
+    "t": "thumb",
 }
 
 var prev_gest = document.getElementById(gesture_dict['c']) // init value irrelevant

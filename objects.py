@@ -1,6 +1,6 @@
-gestures_map = {0: 'open palm',
-                1: 'closed palm',
-                2: 'L',
-                3: 'fist',
-                4: 'thumbs up',
-                }
+gestures_map =  {
+    0: 'palm',
+    1: 'L',
+    2: 'fist',
+    3: 'thumb',
+}

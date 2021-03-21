@@ -29,7 +29,7 @@ def before_first_request():
             time.sleep(update_period)
     if not current_app.config['TESTING']:
         t1 = threading.Thread(target=find_offline_users, args=(current_app._get_current_object(),))
-        t2 = threading.Thread(target=update_monitoring, args=current_app.config['UPDATE_STATS_SECS'])
+        t2 = threading.Thread(target=update_monitoring, args=(current_app.config['UPDATE_STATS_SECS'],))
         t1.start()
         t2.start()
 
