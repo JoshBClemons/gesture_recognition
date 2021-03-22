@@ -151,7 +151,6 @@ class Server(_Server):
         if reset_online:
             with app.app_context():
                 create_db(reset_online)
-                reset_dirs()
         print('[INFO] Starting server.')
 
         # run server with or without secure connection. Online instances must be ran with secure connection 
@@ -183,9 +182,10 @@ class CeleryWorker(Command):
     name = 'celery'
     capture_all_args = True
 
-    # create figure and image directories
-    reset_dirs()
     def run(self, argv):
+        # create figure and image directories
+        reset_dirs()
+        
         ret = subprocess.call(     
             ['celery', '--app=gesture_recognition.celery', 'worker'] + argv)
         sys.exit(ret)

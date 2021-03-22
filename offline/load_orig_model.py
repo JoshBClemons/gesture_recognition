@@ -17,8 +17,8 @@ def load_orig_model():
     f1 = 1 # temp fake value
     rank = 1
     eval_time = 10 # temp fake value
-    true_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0] # temp fake values
-    pred_gestures = [1,2,3,4,0,3,4,2,3,4,2,1,2,3,0] # temp fake values
+    true_gestures = [1,2,3,0,3,2,3,2,1,2,1,0] # temp fake values
+    pred_gestures = [1,2,3,0,3,2,2,2,1,2,3,0] # temp fake values
     model_name = 'model_0'
     training_date = datetime.datetime(2021, 2, 1, 0, 0) # temp fake value
     engine = create_engine("postgresql://{user}:{pw}@{host}/{name}".format(host=Config.DB_HOST, user=Config.DB_USER, pw=Config.DB_PASS, name=Config.DB_NAME))

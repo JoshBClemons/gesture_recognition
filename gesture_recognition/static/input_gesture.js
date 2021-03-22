@@ -7,7 +7,7 @@ gesture_dict = {
     "t": "thumb",
 }
 
-var prev_gest = document.getElementById(gesture_dict['c']) // init value irrelevant
+var prev_gest = document.getElementById(gesture_dict['f']) // init value irrelevant
 gesture_key.onkeyup = function(){
     if ((Object.keys(gesture_dict).includes(gesture_key.value) || Object.keys(gesture_dict).includes(gesture_key.value.toLowerCase())) && (prev_key == '' || prev_key == 'r')) {
         gesture_key.value = 'Save background first'

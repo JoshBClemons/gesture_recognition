@@ -1,0 +1,1 @@
+{"columns": ["palm", "L", "fist", "thumb"], "index": ["palm", "L", "fist", "thumb"], "data": [[2, 0, 0, 0], [0, 2, 0, 1], [0, 0, 4, 0], [0, 0, 1, 2]], "caption": "Confusion Matrix for model_0 <br> (trained 2021-02-01 00:00:00)"}
