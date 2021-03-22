@@ -5,7 +5,7 @@ This repository contains the application "Gesture Recognition" I designed and de
 Project inspired by Brenner Heintz's "Training a Neural Network to Detect Gestures with OpenCV in Python" [1] and Chad Hart's "Computer Vision on the Web with WebRTC and TensorFlow" [2].
 I heavily referenced Miguel Grinberg's "flack" repository code and architecture while developing this application [3].
 
-As of 3/17/2021, this application is running at 'https://3.142.74.175/'
+As of 3/17/2021, this application is running at https://18.224.96.147/
 
 Check out the article I wrote about this application at _____. 
 
@@ -34,7 +34,7 @@ create database tables and local file directories and start the application with
 
     python manage.py start -ro -rof
 
-With the application running, navigate to `http://0.0.0.0:5000` on the address bar to interact with the application or `http://0.0.0.0:5000/stats' to view usage statistics. 
+With the application running, navigate to http://0.0.0.0:5000 on the address bar to interact with the application or http://0.0.0.0:5000/stats to view usage statistics. 
 
 To run the application without resetting the database tables and local file directories, start the application with the command:
 
