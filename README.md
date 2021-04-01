@@ -7,10 +7,6 @@ I heavily referenced Miguel Grinberg's "flack" repository code and architecture 
 
 As of 3/17/2021, this application is running at https://18.224.96.147/
 
-Check out the article I wrote about this application at _____. 
-
-See a demo video of this application at _____.
-
 Sources
 1. Main article: https://towardsdatascience.com/training-a-neural-network-to-detect-gestures-with-opencv-in-python-e09b0a12bdf1. GitHub: https://github.com/athena15/project_kojak
 2. Main article: https://webrtchacks.com/webrtc-cv-tensorflow/. GitHub: https://github.com/webrtcHacks/tfObjWebrtc
