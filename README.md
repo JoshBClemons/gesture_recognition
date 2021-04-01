@@ -2,15 +2,7 @@
 
 This repository contains the application "Gesture Recognition" I designed and developed to fulfill my Springboard capstone project requirement. This application predicts hand gestures (thumbs up, L, fist, open palm, and closed palm) users make in front of their webcam. On the backend, the application stores user and frame information on a database. This information is used to monitor model performance and user activity as well as train new models to improve prediction performance. 
 
-Project inspired by Brenner Heintz's "Training a Neural Network to Detect Gestures with OpenCV in Python" [1] and Chad Hart's "Computer Vision on the Web with WebRTC and TensorFlow" [2].
-I heavily referenced Miguel Grinberg's "flack" repository code and architecture while developing this application [3].
-
 As of 3/17/2021, this application is running at https://18.224.96.147/
-
-Sources
-1. Main article: https://towardsdatascience.com/training-a-neural-network-to-detect-gestures-with-opencv-in-python-e09b0a12bdf1. GitHub: https://github.com/athena15/project_kojak
-2. Main article: https://webrtchacks.com/webrtc-cv-tensorflow/. GitHub: https://github.com/webrtcHacks/tfObjWebrtc
-3. GitHub: https://github.com/miguelgrinberg/flack
 
 ## Installation
 
@@ -75,3 +67,11 @@ After collecting data, you can train new models with the following command:
 6. replace print statements with logging
 
 Please reach out to me at clemonsjoshua6@gmail.com if you have any suggestions for how to improve this application or the model that drives it.
+
+## Works Cited
+Project inspired by Brenner Heintz's "Training a Neural Network to Detect Gestures with OpenCV in Python" [1] and Chad Hart's "Computer Vision on the Web with WebRTC and TensorFlow" [2].
+I heavily referenced Miguel Grinberg's "flack" repository code and architecture while developing this application [3].
+
+1. Main article: https://towardsdatascience.com/training-a-neural-network-to-detect-gestures-with-opencv-in-python-e09b0a12bdf1. GitHub: https://github.com/athena15/project_kojak
+2. Main article: https://webrtchacks.com/webrtc-cv-tensorflow/. GitHub: https://github.com/webrtcHacks/tfObjWebrtc
+3. GitHub: https://github.com/miguelgrinberg/flack
