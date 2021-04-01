@@ -1,6 +1,8 @@
 # Hand Gesture Recognition
 
-This repository contains the application "Gesture Recognition" I designed and developed to fulfill my Springboard capstone project requirement. This application predicts hand gestures (thumbs up, L, fist, open palm, and closed palm) users make in front of their webcam. On the backend, the application stores user and frame information on a database. This information is used to monitor model performance and user activity as well as train new models to improve prediction performance. 
+In March 2021, I received a certificate in Machine Learning Engineering from Springboard, taking on a four-month bootcamp course recommended to me by an experienced data scientist. Prior to developing the application in this repository, I learned about image recognition techniques using convolution neural networks.
+
+This repository contains the application "Hand Gesture Recognition" I designed and developed to fulfill my certificate project requirement. The application predicts hand gestures (thumbs up, L-shape, fist, and palm) that users can make in front of their webcam. The application captures, downloads, processes, and feeds streamed images into a convolutional neural network that returns the prediction and stores user and image information in a database. This data is used to monitor predictive model performance and is reported in dashboards displaying user activities. The data is also used to train new models to improve prediction performance.
 
 As of 3/17/2021, this application is running at https://18.224.96.147/
 
