@@ -6,6 +6,8 @@ This repository contains the application "Hand Gesture Recognition" I designed a
 
 As of 3/17/2021, this application is running at https://18.224.96.147/
 
+Check out a demonstration of the application at https://www.youtube.com/watch?v=uxhXU5ni-AE&ab_channel=JoshClemons
+
 ## Installation
 
 All the code and examples were tested on Python 3.8.5 in Ubuntu 20.04.2.
